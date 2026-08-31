@@ -477,7 +477,7 @@
 </main>
 
 <script>
-  const SPARQL_URL = 'https://ldf.fi/warsa/sparql';
+  const SPARQL_URL = '/api/sparql';
   const FINNA_URL  = 'https://api.finna.fi/v1/search';
 
   let currentSearch = '';
@@ -497,12 +497,8 @@ LIMIT 30`.trim();
   }
 
   async function querySotasampo(name) {
-    const url = SPARQL_URL
-      + '?query=' + encodeURIComponent(buildQuery(name))
-      + '&format=application%2Fsparql-results%2Bjson';
-    const res = await fetch(url, {
-      headers: { Accept: 'application/sparql-results+json' }
-    });
+    const url = SPARQL_URL + '?query=' + encodeURIComponent(buildQuery(name));
+    const res = await fetch(url);
     if (!res.ok) throw new Error('HTTP ' + res.status);
     return res.json();
   }
