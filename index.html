@@ -6,376 +6,71 @@
   <title>Sota-arkistohaku</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      font-family: Georgia, "Times New Roman", serif;
-      background: #F0E8D5;
-      color: #1E1A14;
-      min-height: 100vh;
-    }
-
-    header {
-      background: #1B3A28;
-      border-bottom: 3px solid #8C7B52;
-      padding: 28px 24px;
-      text-align: center;
-    }
-    header h1 {
-      color: #F0E8D5;
-      font-size: 26px;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      margin-bottom: 6px;
-    }
-    header p {
-      color: #A89878;
-      font-size: 12px;
-      letter-spacing: 3px;
-      text-transform: uppercase;
-    }
-
-    main {
-      max-width: 700px;
-      margin: 0 auto;
-      padding: 28px 20px;
-    }
-
-    /* Hakukenttä */
-    .search-label {
-      display: block;
-      font-size: 11px;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      color: #5C5040;
-      margin-bottom: 8px;
-    }
-    .search-row {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 6px;
-    }
-    .search-row input {
-      flex: 1;
-      padding: 12px 16px;
-      font-size: 16px;
-      font-family: Georgia, serif;
-      background: #FDF8F0;
-      border: 1.5px solid #B8A880;
-      border-radius: 3px;
-      color: #1E1A14;
-      outline: none;
-    }
-    .search-row input:focus {
-      border-color: #1B3A28;
-    }
-    .search-row button {
-      padding: 12px 24px;
-      background: #1B3A28;
-      color: #F0E8D5;
-      border: none;
-      border-radius: 3px;
-      font-size: 14px;
-      font-family: Georgia, serif;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      cursor: pointer;
-    }
-    .search-row button:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-    .search-hint {
-      font-size: 12px;
-      color: #8C7B52;
-      font-style: italic;
-      margin-bottom: 24px;
-    }
-
-    /* Lähdebadget */
-    .sources {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-      margin-bottom: 24px;
-    }
-    .badge {
-      font-size: 11px;
-      padding: 3px 10px;
-      border: 1px solid #C8B88A;
-      border-radius: 20px;
-      color: #5C5040;
-      background: #FDF8F0;
-    }
-
-    /* Virheviesti */
-    .error-box {
-      background: #F5E8E8;
-      border: 1px solid #C88;
-      border-radius: 4px;
-      padding: 12px 16px;
-      font-size: 14px;
-      color: #7A2020;
-      margin-bottom: 20px;
-      display: none;
-    }
-
-    /* Osiot */
-    .section {
-      background: #FDF8F0;
-      border: 1px solid #D4C8A8;
-      border-radius: 4px;
-      overflow: hidden;
-      margin-bottom: 16px;
-    }
-    .section-head {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 10px 16px;
-      background: #1B3A28;
-    }
-    .source-tag {
-      font-size: 10px;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      background: #8C7B52;
-      color: #F0E8D5;
-      padding: 2px 8px;
-      border-radius: 2px;
-    }
-    .section-title {
-      font-size: 13px;
-      font-weight: normal;
-      letter-spacing: 1px;
-      color: #F0E8D5;
-      text-transform: uppercase;
-    }
-    .section-body {
-      padding: 10px 12px;
-    }
-
-    /* Henkilölistat */
-    .person-btn {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      width: 100%;
-      text-align: left;
-      padding: 10px 12px;
-      margin-bottom: 4px;
-      border: 1px solid #D4C8A8;
-      border-radius: 3px;
-      background: transparent;
-      cursor: pointer;
-      font-family: Georgia, serif;
-      font-size: 14px;
-      color: #1E1A14;
-      transition: background 0.1s;
-    }
+    body { font-family: Georgia, "Times New Roman", serif; background: #F0E8D5; color: #1E1A14; min-height: 100vh; }
+    header { background: #1B3A28; border-bottom: 3px solid #8C7B52; padding: 28px 24px; text-align: center; }
+    header h1 { color: #F0E8D5; font-size: 26px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 6px; }
+    header p { color: #A89878; font-size: 12px; letter-spacing: 3px; text-transform: uppercase; }
+    main { max-width: 700px; margin: 0 auto; padding: 28px 20px; }
+    .sources { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 20px; }
+    .badge { font-size: 11px; padding: 3px 10px; border: 1px solid #C8B88A; border-radius: 20px; color: #5C5040; background: #FDF8F0; }
+    .search-label { display: block; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #5C5040; margin-bottom: 8px; }
+    .search-row { display: flex; gap: 8px; margin-bottom: 6px; }
+    .search-row input { flex: 1; padding: 12px 16px; font-size: 16px; font-family: Georgia, serif; background: #FDF8F0; border: 1.5px solid #B8A880; border-radius: 3px; color: #1E1A14; outline: none; }
+    .search-row input:focus { border-color: #1B3A28; }
+    .search-row button { padding: 12px 24px; background: #1B3A28; color: #F0E8D5; border: none; border-radius: 3px; font-size: 14px; font-family: Georgia, serif; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; }
+    .search-row button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .search-hint { font-size: 12px; color: #8C7B52; font-style: italic; margin-bottom: 24px; }
+    .section { background: #FDF8F0; border: 1px solid #D4C8A8; border-radius: 4px; overflow: hidden; margin-bottom: 16px; }
+    .section-head { display: flex; align-items: center; gap: 10px; padding: 10px 16px; background: #1B3A28; }
+    .source-tag { font-size: 10px; letter-spacing: 1px; text-transform: uppercase; background: #8C7B52; color: #F0E8D5; padding: 2px 8px; border-radius: 2px; }
+    .section-title { font-size: 13px; font-weight: normal; letter-spacing: 1px; color: #F0E8D5; text-transform: uppercase; }
+    .section-body { padding: 10px 12px; }
+    .person-btn { display: flex; align-items: center; justify-content: space-between; width: 100%; text-align: left; padding: 10px 12px; margin-bottom: 4px; border: 1px solid #D4C8A8; border-radius: 3px; background: transparent; cursor: pointer; font-family: Georgia, serif; font-size: 14px; color: #1E1A14; }
     .person-btn:hover { background: #F0E8D5; }
-    .person-btn.active {
-      background: #1B3A28;
-      color: #F0E8D5;
-      border-color: #1B3A28;
-    }
-
-    /* Valittu henkilö */
-    .detail-name {
-      font-size: 20px;
-      font-weight: bold;
-      color: #1B3A28;
-      margin-bottom: 12px;
-    }
-    .link-row {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-    .ext-link {
-      font-size: 13px;
-      color: #1B3A28;
-      text-decoration: none;
-      border: 1px solid #8C7B52;
-      border-radius: 3px;
-      padding: 6px 12px;
-      transition: background 0.1s;
-    }
+    .person-btn.active { background: #1B3A28; color: #F0E8D5; border-color: #1B3A28; }
+    .detail-box { padding: 14px; }
+    .detail-name { font-size: 20px; font-weight: bold; color: #1B3A28; margin-bottom: 12px; }
+    .link-row { display: flex; gap: 10px; flex-wrap: wrap; }
+    .ext-link { font-size: 13px; color: #1B3A28; text-decoration: none; border: 1px solid #8C7B52; border-radius: 3px; padding: 6px 12px; }
     .ext-link:hover { background: #F0E8D5; }
-
-    /* Kuvat */
-    .photo-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 8px;
-    }
-    .photo-card {
-      border: 1px solid #D4C8A8;
-      border-radius: 3px;
-      overflow: hidden;
-      text-decoration: none;
-      color: #1E1A14;
-      display: block;
-    }
-    .photo-card img {
-      width: 100%;
-      height: 120px;
-      object-fit: cover;
-      display: block;
-      filter: sepia(15%);
-    }
-    .photo-placeholder {
-      width: 100%;
-      height: 120px;
-      background: #E8E0CC;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 28px;
-    }
-    .photo-title {
-      font-size: 11px;
-      padding: 6px 8px;
-      color: #5C5040;
-      line-height: 1.3;
-    }
-
-    /* Päiväkirjat */
-    .diary-card {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 10px 12px;
-      border: 1px solid #D4C8A8;
-      border-radius: 3px;
-      margin-bottom: 4px;
-      text-decoration: none;
-      color: #1E1A14;
-      font-size: 13px;
-      line-height: 1.4;
-      transition: background 0.1s;
-    }
+    .photo-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .photo-card { border: 1px solid #D4C8A8; border-radius: 3px; overflow: hidden; text-decoration: none; color: #1E1A14; display: block; }
+    .photo-card img { width: 100%; height: 120px; object-fit: cover; display: block; filter: sepia(15%); }
+    .photo-ph { width: 100%; height: 120px; background: #E8E0CC; display: flex; align-items: center; justify-content: center; font-size: 28px; }
+    .photo-title { font-size: 11px; padding: 6px 8px; color: #5C5040; line-height: 1.3; }
+    .diary-card { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border: 1px solid #D4C8A8; border-radius: 3px; margin-bottom: 4px; text-decoration: none; color: #1E1A14; font-size: 13px; }
     .diary-card:hover { background: #F0E8D5; }
-    .diary-year {
-      color: #8C7B52;
-      font-size: 12px;
-      margin-left: 8px;
-      flex-shrink: 0;
-    }
-
-    /* Tyhjä tila */
-    .empty {
-      font-size: 13px;
-      color: #8C7B52;
-      font-style: italic;
-      padding: 8px 4px;
-    }
-
-    /* Ladataan */
-    .loading {
-      font-size: 13px;
-      color: #8C7B52;
-      padding: 8px 4px;
-    }
-
-    /* Sotapolku-osio */
-    .sotapolku-section {
-      background: #FDF8F0;
-      border: 1px solid #D4C8A8;
-      border-radius: 4px;
-      overflow: hidden;
-      margin-bottom: 16px;
-    }
-    .sotapolku-head {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 10px 16px;
-      background: #2C4A1C;
-    }
-    .sotapolku-body {
-      padding: 16px;
-    }
-    .sotapolku-desc {
-      font-size: 13px;
-      color: #5C5040;
-      line-height: 1.6;
-      margin-bottom: 14px;
-    }
-    .sotapolku-btn {
-      display: inline-block;
-      padding: 11px 22px;
-      background: #2C4A1C;
-      color: #F0E8D5;
-      text-decoration: none;
-      border-radius: 3px;
-      font-size: 14px;
-      font-family: Georgia, serif;
-      letter-spacing: 0.5px;
-      transition: background 0.1s;
-    }
+    .diary-year { color: #8C7B52; font-size: 12px; margin-left: 8px; flex-shrink: 0; }
+    .sotapolku-head { background: #2C4A1C !important; }
+    .sotapolku-tag { background: #4A7A2C !important; }
+    .sotapolku-body { padding: 16px; }
+    .sotapolku-desc { font-size: 13px; color: #5C5040; line-height: 1.6; margin-bottom: 14px; }
+    .sotapolku-btn { display: inline-block; padding: 11px 22px; background: #2C4A1C; color: #F0E8D5; text-decoration: none; border-radius: 3px; font-size: 14px; font-family: Georgia, serif; }
     .sotapolku-btn:hover { background: #1B3A28; }
-    .sotapolku-note {
-      font-size: 11px;
-      color: #8C7B52;
-      font-style: italic;
-      margin-top: 10px;
-    }
-
-    /* Maksullinen banneri */
-    .pro-banner {
-      border: 1.5px solid #8C7B52;
-      border-radius: 4px;
-      padding: 14px 16px;
-      background: #FDF8F0;
-      border-left: 5px solid #8C7B52;
-      margin-bottom: 16px;
-    }
-    .pro-banner strong {
-      display: block;
-      font-size: 13px;
-      color: #1B3A28;
-      margin-bottom: 4px;
-      letter-spacing: 0.5px;
-    }
-    .pro-banner p {
-      font-size: 12px;
-      color: #5C5040;
-      line-height: 1.5;
-    }
-
-    /* Aloitusnäkymä */
-    .placeholder {
-      text-align: center;
-      padding: 48px 16px;
-      color: #8C7B52;
-    }
+    .sotapolku-note { font-size: 11px; color: #8C7B52; font-style: italic; margin-top: 10px; }
+    .pro-banner { border: 1.5px solid #8C7B52; border-left: 5px solid #8C7B52; border-radius: 4px; padding: 14px 16px; background: #FDF8F0; margin-bottom: 16px; }
+    .pro-banner strong { display: block; font-size: 13px; color: #1B3A28; margin-bottom: 4px; }
+    .pro-banner p { font-size: 12px; color: #5C5040; line-height: 1.5; }
+    .empty { font-size: 13px; color: #8C7B52; font-style: italic; padding: 8px 4px; }
+    .loading { font-size: 13px; color: #8C7B52; padding: 8px 4px; }
+    .placeholder { text-align: center; padding: 48px 16px; color: #8C7B52; }
     .placeholder-icon { font-size: 40px; margin-bottom: 16px; }
-    .placeholder p {
-      font-size: 14px;
-      line-height: 1.8;
-      font-style: italic;
-    }
-
-    /* Piilotettu oletuksena */
+    .placeholder p { font-size: 14px; line-height: 1.8; font-style: italic; }
     .hidden { display: none; }
   </style>
 </head>
 <body>
-
 <header>
   <h1>Sota-arkistohaku</h1>
   <p>Talvi- ja jatkosodan henkilöhistoria</p>
 </header>
-
 <main>
-
   <div class="sources">
     <span class="badge">📚 Sotasampo</span>
     <span class="badge">📷 SA-kuva / Finna</span>
     <span class="badge">📄 Kansallisarkisto / Finna</span>
     <span class="badge">🗺️ Sotapolku.fi</span>
   </div>
-
   <label class="search-label">Henkilön nimi</label>
   <div class="search-row">
     <input type="text" id="searchInput" placeholder="esim. Korhonen tai Mäkinen Eino" />
@@ -383,295 +78,188 @@
   </div>
   <p class="search-hint">Kirjoita sukunimi ensin, esim. "Virtanen" tai "Leinonen Paavo"</p>
 
-  <div class="error-box" id="errorBox"></div>
-
-  <!-- Aloitusnäkymä -->
   <div class="placeholder" id="placeholder">
     <div class="placeholder-icon">🏛️</div>
-    <p>
-      Hae suomalaisten sotilaiden tietoja talvi- ja jatkosodasta.<br>
-      Tiedot haetaan reaaliajassa Sotasammosta, SA-kuvista<br>
-      ja Kansallisarkistosta.
-    </p>
+    <p>Hae suomalaisten sotilaiden tietoja talvi- ja jatkosodasta.<br>
+    Tiedot haetaan reaaliajassa Sotasammosta, SA-kuvista<br>ja Kansallisarkistosta.</p>
   </div>
 
-  <!-- Tulokset -->
   <div class="hidden" id="results">
 
-    <!-- Sotasampo henkilöt -->
     <div class="section">
       <div class="section-head">
         <span class="source-tag">Sotasampo</span>
         <span class="section-title">Henkilöt</span>
       </div>
-      <div class="section-body" id="personsBody">
-        <p class="loading">Ladataan...</p>
-      </div>
+      <div class="section-body" id="personsBody"><p class="loading">Ladataan...</p></div>
     </div>
 
-    <!-- Valittu henkilö -->
     <div class="section hidden" id="detailSection">
       <div class="section-head">
         <span class="source-tag">Valittu</span>
         <span class="section-title" id="detailLabel">–</span>
       </div>
-      <div class="section-body" id="detailBody"></div>
+      <div class="detail-box" id="detailBody"></div>
     </div>
 
-    <!-- SA-kuva valokuvat -->
     <div class="section">
       <div class="section-head">
         <span class="source-tag">SA-kuva</span>
         <span class="section-title">Valokuvat</span>
       </div>
-      <div class="section-body" id="photosBody">
-        <p class="loading">Ladataan...</p>
-      </div>
+      <div class="section-body" id="photosBody"><p class="loading">Ladataan...</p></div>
     </div>
 
-    <!-- Kansallisarkisto päiväkirjat -->
     <div class="section">
       <div class="section-head">
         <span class="source-tag">Kansallisarkisto</span>
         <span class="section-title">Sotapäiväkirjat</span>
       </div>
-      <div class="section-body" id="diariesBody">
-        <p class="loading">Ladataan...</p>
-      </div>
+      <div class="section-body" id="diariesBody"><p class="loading">Ladataan...</p></div>
     </div>
 
-    <!-- Sotapolku -->
-    <div class="sotapolku-section">
-      <div class="sotapolku-head">
-        <span class="source-tag" style="background:#4A7A2C;">Sotapolku.fi</span>
+    <div class="section">
+      <div class="section-head sotapolku-head">
+        <span class="source-tag sotapolku-tag">Sotapolku.fi</span>
         <span class="section-title">Sijoituspaikat ja sotapolku</span>
       </div>
       <div class="sotapolku-body">
-        <p class="sotapolku-desc">
-          Sotapolku.fi sisältää henkilökohtaiset sijoituspaikat, joukko-osastot,
-          karttapohjaisen sotapolun sekä tiedot menehtymisestä ja hautapaikasta.
-          Sivustolla on tällä hetkellä tiedot noin 17 prosentista kaikista sodissa
-          palvelleista.
-        </p>
-        <a id="sotapolkuBtn" href="https://sotapolku.fi/henkilot/" target="_blank"
-           rel="noopener" class="sotapolku-btn">
-          Hae Sotapolku.fi:stä ↗
-        </a>
-        <p class="sotapolku-note">
-          Avautuu uudessa välilehdessä. Kirjoita haetun henkilön nimi hakukenttään
-          etunimi ja sukunimi erikseen.
-        </p>
+        <p class="sotapolku-desc">Sotapolku.fi sisältää henkilökohtaiset sijoituspaikat, joukko-osastot, karttapohjaisen sotapolun sekä tiedot menehtymisestä ja hautapaikasta.</p>
+        <a id="sotapolkuBtn" href="https://sotapolku.fi/henkilot/" target="_blank" rel="noopener" class="sotapolku-btn">Hae Sotapolku.fi:stä ↗</a>
+        <p class="sotapolku-note">Avautuu uudessa välilehdessä. Kirjoita nimi hakukenttään etunimi ja sukunimi erikseen.</p>
       </div>
     </div>
 
-    <!-- Maksullinen banneri -->
     <div class="pro-banner">
       <strong>⚡ Maksullinen versio – automaattinen AI-narratiivi</strong>
-      <p>
-        Claude API yhdistää kaikki lähdetiedot ja kirjoittaa automaattisesti
-        suomenkielisen tarinan henkilön sota-ajasta. Noin 20–30 €/kk.
-      </p>
+      <p>Claude API yhdistää kaikki lähdetiedot ja kirjoittaa suomenkielisen tarinan henkilön sota-ajasta automaattisesti.</p>
     </div>
 
   </div>
 </main>
 
 <script>
-  const SPARQL_URL = '/api/sparql';
-  const FINNA_URL  = 'https://api.finna.fi/v1/search';
+  // Tallennetaan henkilöt tähän
+  var persons = [];
 
-  let currentSearch = '';
-
-  // SPARQL-haku henkilönimellä
-  function buildQuery(name) {
-    const safe = name.replace(/\\/g,'\\\\').replace(/"/g,'\\"');
-    return `PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
-SELECT DISTINCT ?person ?name WHERE {
-  ?person skos:prefLabel ?name .
-  FILTER(CONTAINS(LCASE(str(?name)), LCASE("${safe}")))
-}
-ORDER BY ?name
-LIMIT 30`.trim();
-  }
-
-  async function querySotasampo(name) {
-    const url = SPARQL_URL
-      + '?query=' + encodeURIComponent(buildQuery(name))
-      + '&_t=' + Date.now();
-    const res = await fetch(url, { cache: 'no-store' });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    return res.json();
-  }
-
-  async function queryFinna(name, type) {
-    const params = new URLSearchParams({ lookfor: name, limit: '6' });
-    if (type === 'photos')  params.append('filter[]', 'building:0/sa-kuva/');
-    if (type === 'diaries') params.append('filter[]', 'building:0/Kansallisarkisto/');
-    const res = await fetch(FINNA_URL + '?' + params);
-    if (!res.ok) throw new Error('Finna HTTP ' + res.status);
-    return res.json();
-  }
-
-  async function doSearch() {
-    const term = document.getElementById('searchInput').value.trim();
+  function doSearch() {
+    var term = document.getElementById('searchInput').value.trim();
     if (!term) return;
 
-    currentSearch = term;
-
-    // Nollataan näkymä
-    document.getElementById('errorBox').style.display = 'none';
     document.getElementById('placeholder').classList.add('hidden');
     document.getElementById('results').classList.remove('hidden');
-    personsList = [];
     document.getElementById('detailSection').classList.add('hidden');
-    document.getElementById('personsBody').innerHTML  = '<p class="loading">Haetaan Sotasammosta...</p>';
-    document.getElementById('photosBody').innerHTML   = '<p class="loading">Ladataan kuvia...</p>';
-    document.getElementById('diariesBody').innerHTML  = '<p class="loading">Ladataan päiväkirjoja...</p>';
+    document.getElementById('personsBody').innerHTML = '<p class="loading">Haetaan Sotasammosta...</p>';
+    document.getElementById('photosBody').innerHTML = '<p class="loading">Ladataan kuvia...</p>';
+    document.getElementById('diariesBody').innerHTML = '<p class="loading">Ladataan päiväkirjoja...</p>';
 
-    updateSotapolkuBtn(term);
-    const btn = document.getElementById('searchBtn');
+    var btn = document.getElementById('searchBtn');
     btn.disabled = true;
     btn.textContent = 'Haetaan...';
 
-    // Haetaan kaikki lähteet rinnakkain
-    const [sotaRes, photoRes, diaryRes] = await Promise.allSettled([
-      querySotasampo(term),
-      queryFinna(term, 'photos'),
-      queryFinna(term, 'diaries')
-    ]);
+    var sotapolkuBtn = document.getElementById('sotapolkuBtn');
+    sotapolkuBtn.textContent = 'Hae "' + term + '" Sotapolku.fi:stä ↗';
 
-    btn.disabled = false;
-    btn.textContent = 'Hae';
+    persons = [];
 
-    // — Sotasampo —
-    const pb = document.getElementById('personsBody');
-    if (sotaRes.status === 'fulfilled') {
-      const rows = sotaRes.value?.results?.bindings || [];
-      if (!rows.length) {
-        pb.innerHTML = `<p class="empty">Ei tuloksia nimellä "${term}". Kokeile pelkkää sukunimeä.</p>`;
+    var sparqlQuery = 'PREFIX skos: <http://www.w3.org/2004/02/skos/core#>\n' +
+      'SELECT DISTINCT ?person ?name WHERE {\n' +
+      '  ?person skos:prefLabel ?name .\n' +
+      '  FILTER(CONTAINS(LCASE(str(?name)), LCASE("' + term.replace(/"/g, '\\"') + '")))\n' +
+      '}\nORDER BY ?name\nLIMIT 30';
+
+    var sparqlUrl = '/api/sparql?_t=' + Date.now() + '&query=' + encodeURIComponent(sparqlQuery);
+    var finnaPhoto = 'https://api.finna.fi/v1/search?lookfor=' + encodeURIComponent(term) + '&limit=6&filter%5B%5D=building%3A0%2Fsa-kuva%2F';
+    var finnaDiary = 'https://api.finna.fi/v1/search?lookfor=' + encodeURIComponent(term) + '&limit=6&filter%5B%5D=building%3A0%2FKansallisarkisto%2F';
+
+    Promise.all([
+      fetch(sparqlUrl, { cache: 'no-store' }).then(function(r) { return r.json(); }).catch(function(e) { return { error: e.message }; }),
+      fetch(finnaPhoto).then(function(r) { return r.json(); }).catch(function() { return { records: [] }; }),
+      fetch(finnaDiary).then(function(r) { return r.json(); }).catch(function() { return { records: [] }; })
+    ]).then(function(results) {
+      btn.disabled = false;
+      btn.textContent = 'Hae';
+
+      var sparqlData = results[0];
+      var photoData  = results[1];
+      var diaryData  = results[2];
+
+      // Sotasampo
+      var pb = document.getElementById('personsBody');
+      if (sparqlData.error) {
+        pb.innerHTML = '<p class="empty">Sotasampo-haun virhe: ' + sparqlData.error + '</p>';
       } else {
-        personsList = rows.map(r => ({
-          uri:  r.person?.value || '',
-          name: r.name?.value   || ''
-        }));
-
-        pb.innerHTML = personsList.map((p, i) =>
-          `<button class="person-btn" onclick="selectPerson(${i})">
-            <span>${p.name}</span><span>→</span>
-          </button>`
-        ).join('');
+        var rows = (sparqlData.results && sparqlData.results.bindings) ? sparqlData.results.bindings : [];
+        if (!rows.length) {
+          pb.innerHTML = '<p class="empty">Ei tuloksia nimellä "' + term + '". Kokeile pelkkää sukunimeä.</p>';
+        } else {
+          persons = rows.map(function(r) {
+            return { uri: r.person ? r.person.value : '', name: r.name ? r.name.value : '' };
+          });
+          pb.innerHTML = persons.map(function(p, i) {
+            return '<button class="person-btn" onclick="valitsePerson(' + i + ')">' +
+              '<span>' + p.name + '</span><span>→</span></button>';
+          }).join('');
+        }
       }
-    } else {
-      const errMsg = sotaRes.reason?.message || 'tuntematon virhe';
-      pb.innerHTML = `
-        <p class="empty">
-          Sotasampo-haku epäonnistui: <strong>${errMsg}</strong><br><br>
-          <a href="https://www.sotasampo.fi/fi/persons/" target="_blank"
-             style="color:#1B3A28">Hae suoraan Sotasammon sivulta ↗</a>
-        </p>`;
-    }
 
-    // — SA-kuva valokuvat —
-    const phb = document.getElementById('photosBody');
-    if (photoRes.status === 'fulfilled') {
-      const records = photoRes.value?.records || [];
-      if (!records.length) {
-        phb.innerHTML = `<p class="empty">Ei kuvia hakusanalla "${term}". Kokeile joukko-osaston nimeä, esim. "JR 37".</p>`;
+      // Valokuvat
+      var phb = document.getElementById('photosBody');
+      var photoRecords = photoData.records || [];
+      if (!photoRecords.length) {
+        phb.innerHTML = '<p class="empty">Ei SA-kuvia tällä nimellä. Kokeile joukko-osaston nimeä, esim. "JR 37".</p>';
       } else {
-        phb.innerHTML = '<div class="photo-grid">'
-          + records.slice(0, 4).map(r => {
-            const imgUrl = r.images?.[0]
-              ? `https://www.finna.fi${r.images[0]}`
-              : null;
-            const imgTag = imgUrl
-              ? `<img src="${imgUrl}" alt="${r.title || ''}" loading="lazy"
-                      onerror="this.outerHTML='<div class=photo-placeholder>📷</div>'">`
-              : `<div class="photo-placeholder">📷</div>`;
-            const title = (r.title || '').substring(0, 60);
-            return `<a href="https://www.finna.fi/Record/${encodeURIComponent(r.id)}"
-                       target="_blank" rel="noopener" class="photo-card">
-                      ${imgTag}
-                      <p class="photo-title">${title}${r.title?.length > 60 ? '…' : ''}</p>
-                    </a>`;
-          }).join('')
-          + '</div>';
+        phb.innerHTML = '<div class="photo-grid">' + photoRecords.slice(0, 4).map(function(r) {
+          var imgSrc = r.images && r.images[0] ? 'https://www.finna.fi' + r.images[0] : null;
+          var imgTag = imgSrc
+            ? '<img src="' + imgSrc + '" alt="" loading="lazy" onerror="this.parentNode.innerHTML=\'<div class=photo-ph>📷</div>\'">'
+            : '<div class="photo-ph">📷</div>';
+          var title = r.title ? r.title.substring(0, 60) : '';
+          return '<a href="https://www.finna.fi/Record/' + encodeURIComponent(r.id) + '" target="_blank" rel="noopener" class="photo-card">' + imgTag + '<p class="photo-title">' + title + '</p></a>';
+        }).join('') + '</div>';
       }
-    } else {
-      phb.innerHTML = '<p class="empty">Kuvahaun virhe: ' + (photoRes.reason?.message || '') + '</p>';
-    }
 
-    // — Kansallisarkiston päiväkirjat —
-    const db = document.getElementById('diariesBody');
-    if (diaryRes.status === 'fulfilled') {
-      const records = diaryRes.value?.records || [];
-      if (!records.length) {
-        db.innerHTML = `<p class="empty">
-          Ei päiväkirjoja henkilönimellä. Sotapäiväkirjat löytyvät parhaiten
-          yksikön nimellä, esim. "JR 37" tai "Er.P 3".
-        </p>`;
+      // Päiväkirjat
+      var db = document.getElementById('diariesBody');
+      var diaryRecords = diaryData.records || [];
+      if (!diaryRecords.length) {
+        db.innerHTML = '<p class="empty">Ei päiväkirjoja henkilönimellä. Kokeile yksikön nimeä, esim. "JR 37".</p>';
       } else {
-        db.innerHTML = records.map(r => `
-          <a href="https://www.finna.fi/Record/${encodeURIComponent(r.id)}"
-             target="_blank" rel="noopener" class="diary-card">
-            <span>${r.title || r.id}</span>
-            ${r.year ? `<span class="diary-year">${r.year}</span>` : ''}
-          </a>`).join('');
+        db.innerHTML = diaryRecords.map(function(r) {
+          return '<a href="https://www.finna.fi/Record/' + encodeURIComponent(r.id) + '" target="_blank" rel="noopener" class="diary-card"><span>' + (r.title || r.id) + '</span>' + (r.year ? '<span class="diary-year">' + r.year + '</span>' : '') + '</a>';
+        }).join('');
       }
-    } else {
-      db.innerHTML = '<p class="empty">Päiväkirjahaun virhe: ' + (diaryRes.reason?.message || '') + '</p>';
-    }
+    });
   }
 
-  let personsList = [];
+  function valitsePerson(i) {
+    var p = persons[i];
+    if (!p) return;
 
-  function selectPersonFromBtn(btn) {
-    const uri  = btn.getAttribute('data-uri');
-    const name = btn.getAttribute('data-name');
-    selectPerson(uri, name);
-  }
-
-  function selectPerson(index) {
-    const { uri, name } = personsList[index];
-    // Merkkaa aktiiviseksi
-    document.querySelectorAll('.person-btn').forEach((b, i) => {
-      b.classList.toggle('active', i === index);
+    document.querySelectorAll('.person-btn').forEach(function(b, j) {
+      b.classList.toggle('active', j === i);
     });
 
-    // Näytä detailiosio
-    document.getElementById('detailLabel').textContent = name;
-    const sampoUrl  = 'https://www.sotasampo.fi/fi/persons/?uri=' + encodeURIComponent(uri);
-    const polkuName = name.split(' ').reverse().join(' '); // SUKUNIMI Etunimi → Etunimi SUKUNIMI
-    const polkuUrl  = 'https://www.sotapolku.fi/haku?q=' + encodeURIComponent(polkuName);
-    const finnaUrl  = 'https://www.finna.fi/Search/Results?lookfor='
-      + encodeURIComponent(name)
-      + '&filter%5B%5D=building%3A0%2FKansallisarkisto%2F';
+    document.getElementById('detailLabel').textContent = p.name;
 
-    document.getElementById('detailBody').innerHTML = `
-      <p class="detail-name">${name}</p>
-      <div class="link-row">
-        <a href="${sampoUrl}" target="_blank" rel="noopener" class="ext-link">
-          Avaa Sotasammossa ↗
-        </a>
-        <a href="${polkuUrl}" target="_blank" rel="noopener" class="ext-link">
-          Hae Sotapolulta ↗
-        </a>
-        <a href="${finnaUrl}" target="_blank" rel="noopener" class="ext-link">
-          Kansallisarkisto Finnassa ↗
-        </a>
-      </div>`;
+    var sampoUrl = 'https://www.sotasampo.fi/fi/persons/?uri=' + encodeURIComponent(p.uri);
+    var polkuUrl = 'https://sotapolku.fi/henkilot/';
+    var finnaUrl = 'https://www.finna.fi/Search/Results?lookfor=' + encodeURIComponent(p.name) + '&filter%5B%5D=building%3A0%2FKansallisarkisto%2F';
+
+    document.getElementById('detailBody').innerHTML =
+      '<p class="detail-name">' + p.name + '</p>' +
+      '<div class="link-row">' +
+      '<a href="' + sampoUrl + '" target="_blank" rel="noopener" class="ext-link">Avaa Sotasammossa ↗</a>' +
+      '<a href="' + polkuUrl + '" target="_blank" rel="noopener" class="ext-link">Hae Sotapolulta ↗</a>' +
+      '<a href="' + finnaUrl + '" target="_blank" rel="noopener" class="ext-link">Kansallisarkisto Finnassa ↗</a>' +
+      '</div>';
 
     document.getElementById('detailSection').classList.remove('hidden');
   }
 
-  // Päivitä Sotapolku-napin teksti hakusanan mukaan
-  function updateSotapolkuBtn(term) {
-    const btn = document.getElementById('sotapolkuBtn');
-    if (btn) btn.textContent = `Hae "${term}" Sotapolku.fi:stä ↗`;
-  }
-
-  // Enter-näppäin hakee
-  document.getElementById('searchInput')
-    .addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
+  document.getElementById('searchInput').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') doSearch();
+  });
 </script>
 </body>
 </html>
