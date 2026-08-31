@@ -522,6 +522,7 @@ LIMIT 30`.trim();
     document.getElementById('errorBox').style.display = 'none';
     document.getElementById('placeholder').classList.add('hidden');
     document.getElementById('results').classList.remove('hidden');
+    personsList = [];
     document.getElementById('detailSection').classList.add('hidden');
     document.getElementById('personsBody').innerHTML  = '<p class="loading">Haetaan Sotasammosta...</p>';
     document.getElementById('photosBody').innerHTML   = '<p class="loading">Ladataan kuvia...</p>';
@@ -549,16 +550,16 @@ LIMIT 30`.trim();
       if (!rows.length) {
         pb.innerHTML = `<p class="empty">Ei tuloksia nimellä "${term}". Kokeile pelkkää sukunimeä.</p>`;
       } else {
-        pb.innerHTML = rows.map(r => {
-          const uri  = r.person?.value || '';
-          const name = r.name?.value   || uri;
-          return `<button class="person-btn"
-                    data-uri="${uri.replace(/"/g,'&quot;')}"
-                    data-name="${name.replace(/"/g,'&quot;')}"
-                    onclick="selectPersonFromBtn(this)">
-                    <span>${name}</span><span>→</span>
-                  </button>`;
-        }).join('');
+        personsList = rows.map(r => ({
+          uri:  r.person?.value || '',
+          name: r.name?.value   || ''
+        }));
+
+        pb.innerHTML = personsList.map((p, i) =>
+          `<button class="person-btn" onclick="selectPerson(${i})">
+            <span>${p.name}</span><span>→</span>
+          </button>`
+        ).join('');
       }
     } else {
       const errMsg = sotaRes.reason?.message || 'tuntematon virhe';
@@ -621,17 +622,20 @@ LIMIT 30`.trim();
     }
   }
 
+  let personsList = [];
+
   function selectPersonFromBtn(btn) {
     const uri  = btn.getAttribute('data-uri');
     const name = btn.getAttribute('data-name');
     selectPerson(uri, name);
   }
 
-  function selectPerson(uri, name) {
+  function selectPerson(index) {
+    const { uri, name } = personsList[index];
     // Merkkaa aktiiviseksi
-    document.querySelectorAll('.person-btn').forEach(b => b.classList.remove('active'));
-    const btn = document.querySelector(`[data-uri="${uri}"]`);
-    if (btn) btn.classList.add('active');
+    document.querySelectorAll('.person-btn').forEach((b, i) => {
+      b.classList.toggle('active', i === index);
+    });
 
     // Näytä detailiosio
     document.getElementById('detailLabel').textContent = name;
