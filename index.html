@@ -552,10 +552,10 @@ LIMIT 30`.trim();
         pb.innerHTML = rows.map(r => {
           const uri  = r.person?.value || '';
           const name = r.name?.value   || uri;
-          const safeUri  = uri.replace(/'/g,"\\'");
-          const safeName = name.replace(/'/g,"\\'");
-          return `<button class="person-btn" data-uri="${uri}"
-                    onclick="selectPerson('${safeUri}','${safeName}')">
+          return `<button class="person-btn"
+                    data-uri="${uri.replace(/"/g,'&quot;')}"
+                    data-name="${name.replace(/"/g,'&quot;')}"
+                    onclick="selectPersonFromBtn(this)">
                     <span>${name}</span><span>→</span>
                   </button>`;
         }).join('');
@@ -619,6 +619,12 @@ LIMIT 30`.trim();
     } else {
       db.innerHTML = '<p class="empty">Päiväkirjahaun virhe: ' + (diaryRes.reason?.message || '') + '</p>';
     }
+  }
+
+  function selectPersonFromBtn(btn) {
+    const uri  = btn.getAttribute('data-uri');
+    const name = btn.getAttribute('data-name');
+    selectPerson(uri, name);
   }
 
   function selectPerson(uri, name) {
