@@ -485,11 +485,9 @@
   // SPARQL-haku henkilönimellä
   function buildQuery(name) {
     const safe = name.replace(/\\/g,'\\\\').replace(/"/g,'\\"');
-    return `
-PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+    return `PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 SELECT DISTINCT ?person ?name WHERE {
-  ?person a <http://ldf.fi/schema/warsa/actors/Person> ;
-          skos:prefLabel ?name .
+  ?person skos:prefLabel ?name .
   FILTER(CONTAINS(LCASE(str(?name)), LCASE("${safe}")))
 }
 ORDER BY ?name
@@ -497,8 +495,10 @@ LIMIT 30`.trim();
   }
 
   async function querySotasampo(name) {
-    const url = SPARQL_URL + '?query=' + encodeURIComponent(buildQuery(name));
-    const res = await fetch(url);
+    const url = SPARQL_URL
+      + '?query=' + encodeURIComponent(buildQuery(name))
+      + '&_t=' + Date.now();
+    const res = await fetch(url, { cache: 'no-store' });
     if (!res.ok) throw new Error('HTTP ' + res.status);
     return res.json();
   }
@@ -561,9 +561,10 @@ LIMIT 30`.trim();
         }).join('');
       }
     } else {
+      const errMsg = sotaRes.reason?.message || 'tuntematon virhe';
       pb.innerHTML = `
         <p class="empty">
-          Sotasampo-yhteys epäonnistui (CORS-rajoitus selaimessa).<br>
+          Sotasampo-haku epäonnistui: <strong>${errMsg}</strong><br><br>
           <a href="https://www.sotasampo.fi/fi/persons/" target="_blank"
              style="color:#1B3A28">Hae suoraan Sotasammon sivulta ↗</a>
         </p>`;
