@@ -277,6 +277,50 @@
       padding: 8px 4px;
     }
 
+    /* Sotapolku-osio */
+    .sotapolku-section {
+      background: #FDF8F0;
+      border: 1px solid #D4C8A8;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+    .sotapolku-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 16px;
+      background: #2C4A1C;
+    }
+    .sotapolku-body {
+      padding: 16px;
+    }
+    .sotapolku-desc {
+      font-size: 13px;
+      color: #5C5040;
+      line-height: 1.6;
+      margin-bottom: 14px;
+    }
+    .sotapolku-btn {
+      display: inline-block;
+      padding: 11px 22px;
+      background: #2C4A1C;
+      color: #F0E8D5;
+      text-decoration: none;
+      border-radius: 3px;
+      font-size: 14px;
+      font-family: Georgia, serif;
+      letter-spacing: 0.5px;
+      transition: background 0.1s;
+    }
+    .sotapolku-btn:hover { background: #1B3A28; }
+    .sotapolku-note {
+      font-size: 11px;
+      color: #8C7B52;
+      font-style: italic;
+      margin-top: 10px;
+    }
+
     /* Maksullinen banneri */
     .pro-banner {
       border: 1.5px solid #8C7B52;
@@ -329,6 +373,7 @@
     <span class="badge">📚 Sotasampo</span>
     <span class="badge">📷 SA-kuva / Finna</span>
     <span class="badge">📄 Kansallisarkisto / Finna</span>
+    <span class="badge">🗺️ Sotapolku.fi</span>
   </div>
 
   <label class="search-label">Henkilön nimi</label>
@@ -392,6 +437,30 @@
       </div>
       <div class="section-body" id="diariesBody">
         <p class="loading">Ladataan...</p>
+      </div>
+    </div>
+
+    <!-- Sotapolku -->
+    <div class="sotapolku-section">
+      <div class="sotapolku-head">
+        <span class="source-tag" style="background:#4A7A2C;">Sotapolku.fi</span>
+        <span class="section-title">Sijoituspaikat ja sotapolku</span>
+      </div>
+      <div class="sotapolku-body">
+        <p class="sotapolku-desc">
+          Sotapolku.fi sisältää henkilökohtaiset sijoituspaikat, joukko-osastot,
+          karttapohjaisen sotapolun sekä tiedot menehtymisestä ja hautapaikasta.
+          Sivustolla on tällä hetkellä tiedot noin 17 prosentista kaikista sodissa
+          palvelleista.
+        </p>
+        <a id="sotapolkuBtn" href="https://sotapolku.fi/henkilot/" target="_blank"
+           rel="noopener" class="sotapolku-btn">
+          Hae Sotapolku.fi:stä ↗
+        </a>
+        <p class="sotapolku-note">
+          Avautuu uudessa välilehdessä. Kirjoita haetun henkilön nimi hakukenttään
+          etunimi ja sukunimi erikseen.
+        </p>
       </div>
     </div>
 
@@ -462,6 +531,7 @@ LIMIT 30`.trim();
     document.getElementById('photosBody').innerHTML   = '<p class="loading">Ladataan kuvia...</p>';
     document.getElementById('diariesBody').innerHTML  = '<p class="loading">Ladataan päiväkirjoja...</p>';
 
+    updateSotapolkuBtn(term);
     const btn = document.getElementById('searchBtn');
     btn.disabled = true;
     btn.textContent = 'Haetaan...';
@@ -584,6 +654,12 @@ LIMIT 30`.trim();
       </div>`;
 
     document.getElementById('detailSection').classList.remove('hidden');
+  }
+
+  // Päivitä Sotapolku-napin teksti hakusanan mukaan
+  function updateSotapolkuBtn(term) {
+    const btn = document.getElementById('sotapolkuBtn');
+    if (btn) btn.textContent = `Hae "${term}" Sotapolku.fi:stä ↗`;
   }
 
   // Enter-näppäin hakee
