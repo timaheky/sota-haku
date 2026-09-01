@@ -1,1 +1,115 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+  <meta charset="UTF-8">
+  <title>SPARQL-testi</title>
+  <style>
+    body { font-family: monospace; padding: 20px; background: #f5f5f5; }
+    h2 { font-family: sans-serif; }
+    .tulos { background: #fff; border: 1px solid #ddd; padding: 12px; margin-bottom: 8px; border-radius: 4px; font-size: 13px; }
+    .koordinaatit { color: green; font-weight: bold; }
+    .ei-koordinaatteja { color: #999; }
+    button { padding: 10px 20px; background: #1B3A28; color: white; border: none; cursor: pointer; font-size: 14px; border-radius: 4px; margin-bottom: 16px; }
+    #status { font-family: sans-serif; color: #666; margin-bottom: 12px; }
+    #kartta { width: 100%; height: 400px; margin-top: 20px; border: 1px solid #ddd; }
+  </style>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+<body>
+  <h2>Sotasampo SPARQL-testi – JR 37 taistelupaikat</h2>
+  <p>Tämä sivu testaa saadaanko Sotasammosta koordinaatit JR 37:n taistelupaikoille.</p>
+  <button onclick="testaa()">Testaa nyt</button>
+  <div id="status"></div>
+  <div id="tulokset"></div>
+  <div id="kartta"></div>
 
+<script>
+var kartta = L.map('kartta').setView([61.5, 30.0], 7);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '© OpenStreetMap'
+}).addTo(kartta);
+
+function testaa() {
+  document.getElementById('status').textContent = 'Haetaan...';
+  document.getElementById('tulokset').innerHTML = '';
+
+  var query = `PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX crm: <http://www.cidoc-crm.org/cidoc-crm/>
+PREFIX wgs: <http://www.w3.org/2003/01/geo/wgs84_pos#>
+
+SELECT DISTINCT ?event ?ename ?pname ?lat ?lon ?start WHERE {
+  ?event crm:P11_had_participant <http://ldf.fi/warsa/actors/actor_940> .
+  ?event skos:prefLabel ?ename .
+  OPTIONAL {
+    ?event crm:P7_took_place_at ?place .
+    ?place skos:prefLabel ?pname .
+    OPTIONAL { ?place wgs:lat ?lat ; wgs:long ?lon }
+  }
+  OPTIONAL {
+    ?event crm:P4_has_time-span ?ts .
+    ?ts crm:P82a_begin_of_the_begin ?start .
+  }
+}
+ORDER BY ?start
+LIMIT 50`;
+
+  fetch('/api/sparql?_t=' + Date.now() + '&query=' + encodeURIComponent(query), { cache: 'no-store' })
+    .then(r => r.json())
+    .then(data => {
+      var rows = data.results && data.results.bindings ? data.results.bindings : [];
+      var koordinaatteja = 0;
+      var ilman = 0;
+
+      if (!rows.length) {
+        document.getElementById('status').textContent = '⚠️ Ei tuloksia – kysely ei palauttanut dataa';
+        return;
+      }
+
+      document.getElementById('status').textContent = '✅ Saatiin ' + rows.length + ' tapahtumaa';
+      var html = '';
+
+      rows.forEach(function(r) {
+        var ename = r.ename ? r.ename.value : '–';
+        var pname = r.pname ? r.pname.value : '';
+        var lat   = r.lat  ? parseFloat(r.lat.value)  : null;
+        var lon   = r.lon  ? parseFloat(r.lon.value)  : null;
+        var start = r.start ? r.start.value.substring(0,10) : '';
+        var hasCoords = lat && lon && !isNaN(lat) && !isNaN(lon);
+
+        if (hasCoords) {
+          koordinaatteja++;
+          L.circleMarker([lat, lon], {
+            radius: 8, fillColor: '#1B3A28', color: '#8C7B52',
+            weight: 2, opacity: 1, fillOpacity: 0.8
+          }).addTo(kartta).bindPopup('<strong>' + ename + '</strong><br>' + pname + '<br>' + start);
+        } else {
+          ilman++;
+        }
+
+        html += '<div class="tulos">';
+        html += '<strong>' + ename + '</strong>';
+        if (pname) html += ' – ' + pname;
+        if (start) html += ' <span style="color:#666">(' + start + ')</span>';
+        if (hasCoords) {
+          html += '<br><span class="koordinaatit">✅ Koordinaatit: ' + lat.toFixed(4) + ', ' + lon.toFixed(4) + '</span>';
+        } else {
+          html += '<br><span class="ei-koordinaatteja">❌ Ei koordinaatteja</span>';
+        }
+        html += '</div>';
+      });
+
+      html = '<p><strong>Koordinaatit löytyi: ' + koordinaatteja + ' / ' + rows.length + '</strong></p>' + html;
+      document.getElementById('tulokset').innerHTML = html;
+
+      if (koordinaatteja > 0) {
+        document.getElementById('status').textContent += ' – ' + koordinaatteja + ' näkyy kartalla';
+      }
+    })
+    .catch(e => {
+      document.getElementById('status').textContent = '❌ Virhe: ' + e.message;
+    });
+}
+</script>
+</body>
+</html>
