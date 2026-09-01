@@ -203,10 +203,11 @@ function avaaHenkilo(i) {
 
   var q = 'PREFIX skos: <http://www.w3.org/2004/02/skos/core#>\n' +
     'SELECT DISTINCT ?prop ?val ?label WHERE {\n' +
-    '  <' + p.uri + '> ?prop ?val .\n' +
+    '  { <' + p.uri + '> ?prop ?val }\n' +
+    '  UNION\n' +
+    '  { GRAPH ?g { <' + p.uri + '> ?prop ?val } }\n' +
     '  OPTIONAL { ?val skos:prefLabel ?label .\n' +
     '    FILTER(langMatches(lang(?label),"fi") || lang(?label)="") }\n' +
-    '  FILTER(!isBlank(?val))\n' +
     '} LIMIT 200';
 
   sparql(q, function(err, rows) {
@@ -222,15 +223,16 @@ function avaaHenkilo(i) {
 
     rows.forEach(function(r) {
       var prop=r.prop?r.prop.value:'', val=r.val?r.val.value:'', lbl=r.label?r.label.value:'';
-      if (prop.indexOf('rank')>-1 && lbl && !data.arvo) data.arvo=lbl;
-      if (prop.indexOf('birth_date')>-1 && !data.syntyma) { var m=val.match(/\d{4}-\d{2}-\d{2}|\d{4}/); if(m) data.syntyma=m[0]; }
-      if (prop.indexOf('death_date')>-1 && !data.kuolema) { var m2=val.match(/\d{4}-\d{2}-\d{2}|\d{4}/); if(m2) data.kuolema=m2[0]; }
-      if (prop.indexOf('home_municipality')>-1 && lbl && !data.kotikunta) data.kotikunta=lbl;
-      if (prop.indexOf('birth_municipality')>-1 && lbl && !data.syntymakunta) data.syntymakunta=lbl;
-      if (prop.indexOf('occupation')>-1 && lbl && !data.ammatti) data.ammatti=lbl;
-      if (prop.indexOf('death_municipality')>-1 && lbl && !data.kuolinpaikka) data.kuolinpaikka=lbl;
-      if (prop.indexOf('manner_of_death')>-1 && lbl && !data.kuolinsyy) data.kuolinsyy=lbl;
-      if ((prop.indexOf('member')>-1||prop.indexOf('unit')>-1) && lbl) {
+      var propEnd = prop.split('/').pop().split('#').pop().toLowerCase();
+      if ((propEnd==='rank'||propEnd.indexOf('rank')>-1||propEnd==='sotilasarvo'||propEnd==='arvo') && lbl && !data.arvo) data.arvo=lbl;
+      if ((propEnd.indexOf('birth')>-1||propEnd.indexOf('syntym')>-1||propEnd==='birthdate') && !data.syntyma) { var m=val.match(/\d{4}-\d{2}-\d{2}|\d{4}/); if(m) data.syntyma=m[0]; }
+      if ((propEnd.indexOf('death')>-1||propEnd.indexOf('kuolin')>-1||propEnd==='deathdate') && !data.kuolema) { var m2=val.match(/\d{4}-\d{2}-\d{2}|\d{4}/); if(m2) data.kuolema=m2[0]; }
+      if ((propEnd.indexOf('home')>-1||propEnd.indexOf('kotikunta')>-1||propEnd==='municipality') && lbl && !data.kotikunta) data.kotikunta=lbl;
+      if ((propEnd.indexOf('birth_mun')>-1||propEnd.indexOf('syntymakunta')>-1) && lbl && !data.syntymakunta) data.syntymakunta=lbl;
+      if ((propEnd.indexOf('occup')>-1||propEnd.indexOf('ammatti')>-1||propEnd==='has_occupation') && (lbl||val) && !data.ammatti) data.ammatti=lbl||val;
+      if ((propEnd.indexOf('death_mun')>-1||propEnd.indexOf('kuolinpaikka')>-1) && lbl && !data.kuolinpaikka) data.kuolinpaikka=lbl;
+      if ((propEnd.indexOf('manner')>-1||propEnd.indexOf('kuolinsyy')>-1) && lbl && !data.kuolinsyy) data.kuolinsyy=lbl;
+      if ((propEnd.indexOf('member')>-1||propEnd.indexOf('unit')>-1||propEnd.indexOf('joukko')>-1||propEnd.indexOf('p107')>-1) && lbl) {
         if (!yksikot.some(function(u){return u.uri===val;}))
           yksikot.push({uri:val, name:lbl});
       }
