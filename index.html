@@ -202,13 +202,20 @@ function avaaHenkilo(i) {
   document.getElementById('photo-grid').innerHTML = '<p class="loading">Ladataan...</p>';
 
   var q = 'PREFIX skos: <http://www.w3.org/2004/02/skos/core#>\n' +
+    'PREFIX crm: <http://www.cidoc-crm.org/cidoc-crm/>\n' +
     'SELECT DISTINCT ?prop ?val ?label WHERE {\n' +
-    '  { <' + p.uri + '> ?prop ?val }\n' +
-    '  UNION\n' +
-    '  { GRAPH ?g { <' + p.uri + '> ?prop ?val } }\n' +
-    '  OPTIONAL { ?val skos:prefLabel ?label .\n' +
-    '    FILTER(langMatches(lang(?label),"fi") || lang(?label)="") }\n' +
-    '} LIMIT 200';
+    '  {\n' +
+    '    <' + p.uri + '> ?prop ?val .\n' +
+    '    OPTIONAL { ?val skos:prefLabel ?label .\n' +
+    '      FILTER(langMatches(lang(?label),"fi") || lang(?label)="") }\n' +
+    '  } UNION {\n' +
+    '    <' + p.uri + '> crm:P70i_is_documented_in ?doc .\n' +
+    '    ?doc ?prop ?val .\n' +
+    '    OPTIONAL { ?val skos:prefLabel ?label .\n' +
+    '      FILTER(langMatches(lang(?label),"fi") || lang(?label)="") }\n' +
+    '  }\n' +
+    '  FILTER(!isBlank(?val))\n' +
+    '} LIMIT 300';
 
   sparql(q, function(err, rows) {
     var data = { arvo:'', syntyma:'', kuolema:'', kotikunta:'', syntymakunta:'', ammatti:'', kuolinsyy:'', kuolinpaikka:'' };
