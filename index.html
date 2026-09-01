@@ -129,6 +129,7 @@
 var persons = [];
 var kartta = null;
 var merkit = [];
+var currentRequestId = 0; // estää vanhat vastaukset ylikirjoittamasta uutta
 
 function sparql(q, cb) {
   fetch('/api/sparql?_t=' + Date.now() + '&query=' + encodeURIComponent(q), { cache: 'no-store' })
@@ -190,6 +191,8 @@ function doSearch() {
 
 function avaaHenkilo(i) {
   var p = persons[i];
+  currentRequestId++;
+  var myRequestId = currentRequestId;
   naytaHenkilo();
 
   document.getElementById('p-name').textContent = p.name;
@@ -266,19 +269,19 @@ function avaaHenkilo(i) {
     data.nimi = p.name; // lisätään nimi dataan
 
     if (yksikot.length) {
-      haeTaistelut(yksikot[0].uri, unitName, data, p.name);
-      haeWikipedia(unitName);
-      haeKuvat(unitName);
+      haeTaistelut(yksikot[0].uri, unitName, data, p.name, myRequestId);
+      haeWikipedia(unitName, myRequestId);
+      haeKuvat(unitName, myRequestId);
     } else {
       document.getElementById('battle-list').innerHTML = '<p class="empty">Ei yksikkötietoa Sotasammossa.</p>';
       document.getElementById('wiki-text').textContent = 'Ei yksikkötietoa.';
-      haeNarratiivi(data, '', [], p.name);
-      haeKuvat(p.name);
+      haeNarratiivi(data, '', [], p.name, myRequestId);
+      haeKuvat(p.name, myRequestId);
     }
   });
 }
 
-function haeTaistelut(unitUri, unitName, personData, personName) {
+function haeTaistelut(unitUri, unitName, personData, personName, requestId) {
   var q = 'PREFIX skos: <http://www.w3.org/2004/02/skos/core#>\n' +
     'PREFIX crm: <http://www.cidoc-crm.org/cidoc-crm/>\n' +
     'PREFIX wgs: <http://www.w3.org/2003/01/geo/wgs84_pos#>\n' +
@@ -293,6 +296,7 @@ function haeTaistelut(unitUri, unitName, personData, personName) {
     '} ORDER BY ?start LIMIT 60';
 
   sparql(q, function(err, rows) {
+    if (requestId !== currentRequestId) return; // vanhentunut vastaus
     var bl = document.getElementById('battle-list');
     if (!rows.length) {
       bl.innerHTML = '<p class="empty">Ei taistelutietoja Sotasammossa tälle yksikölle.</p>';
@@ -342,11 +346,11 @@ function haeTaistelut(unitUri, unitName, personData, personName) {
     });
 
     bl.innerHTML = html;
-    haeNarratiivi(personData, unitName, battleData, personName);
+    haeNarratiivi(personData, unitName, battleData, personName, requestId);
   });
 }
 
-function haeNarratiivi(personData, unitName, battles, personName) {
+function haeNarratiivi(personData, unitName, battles, personName, requestId) {
   fetch('/api/narrative?_t=' + Date.now(), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -354,6 +358,7 @@ function haeNarratiivi(personData, unitName, battles, personName) {
   })
   .then(function(r) { return r.json(); })
   .then(function(d) {
+    if (requestId !== currentRequestId) return; // vanhentunut vastaus
     var el = document.getElementById('narrative-text');
     if (el && d.narrative) {
       el.outerHTML = '<div class="narrative-text">' + d.narrative.replace(/\n\n/g,'</p><p style="margin-top:10px">').replace(/\n/g,'<br>') + '</div>';
@@ -365,10 +370,11 @@ function haeNarratiivi(personData, unitName, battles, personName) {
   });
 }
 
-function haeWikipedia(unitName) {
+function haeWikipedia(unitName, requestId) {
   fetch('/api/wikipedia?yksikko=' + encodeURIComponent(unitName))
     .then(function(r) { return r.json(); })
     .then(function(d) {
+      if (requestId !== currentRequestId) return;
       var el = document.getElementById('wiki-text');
       if (!el) return;
       if (d.teksti) {
@@ -383,10 +389,11 @@ function haeWikipedia(unitName) {
     });
 }
 
-function haeKuvat(hakusana) {
+function haeKuvat(hakusana, requestId) {
   fetch('https://api.finna.fi/v1/search?lookfor=' + encodeURIComponent(hakusana) + '&limit=6&filter%5B%5D=building%3A0%2Fsa-kuva%2F')
     .then(function(r) { return r.json(); })
     .then(function(d) {
+      if (requestId !== currentRequestId) return;
       var el = document.getElementById('photo-grid');
       if (!el) return;
       var records = d.records || [];
