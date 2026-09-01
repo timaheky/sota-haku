@@ -4,368 +4,371 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Sota-arkistohaku</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: Georgia, "Times New Roman", serif; background: #F0E8D5; color: #1E1A14; min-height: 100vh; }
-    header { background: #1B3A28; border-bottom: 3px solid #8C7B52; padding: 28px 24px; text-align: center; }
-    header h1 { color: #F0E8D5; font-size: 26px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 6px; }
-    header p { color: #A89878; font-size: 12px; letter-spacing: 3px; text-transform: uppercase; }
-    main { max-width: 700px; margin: 0 auto; padding: 28px 20px; }
-    .sources { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 20px; }
-    .badge { font-size: 11px; padding: 3px 10px; border: 1px solid #C8B88A; border-radius: 20px; color: #5C5040; background: #FDF8F0; }
+
+    /* HEADER */
+    header { background: #1B3A28; border-bottom: 3px solid #8C7B52; padding: 20px 24px; display: flex; align-items: center; gap: 16px; }
+    .header-title { color: #F0E8D5; font-size: 20px; letter-spacing: 2px; text-transform: uppercase; }
+    .header-sub { color: #A89878; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; }
+    .back-btn { color: #A89878; background: none; border: 1px solid #8C7B52; border-radius: 3px; padding: 6px 12px; font-size: 12px; font-family: Georgia, serif; cursor: pointer; display: none; }
+    .back-btn:hover { background: #2C4A1C; color: #F0E8D5; }
+
+    /* HAKU-NÄKYMÄ */
+    #view-search { max-width: 680px; margin: 0 auto; padding: 28px 20px; }
     .search-label { display: block; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #5C5040; margin-bottom: 8px; }
     .search-row { display: flex; gap: 8px; margin-bottom: 6px; }
-    .search-row input { flex: 1; padding: 12px 16px; font-size: 16px; font-family: Georgia, serif; background: #FDF8F0; border: 1.5px solid #B8A880; border-radius: 3px; color: #1E1A14; outline: none; }
+    .search-row input { flex: 1; padding: 13px 16px; font-size: 16px; font-family: Georgia, serif; background: #FDF8F0; border: 1.5px solid #B8A880; border-radius: 3px; color: #1E1A14; outline: none; }
     .search-row input:focus { border-color: #1B3A28; }
-    .search-row button { padding: 12px 24px; background: #1B3A28; color: #F0E8D5; border: none; border-radius: 3px; font-size: 14px; font-family: Georgia, serif; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; }
+    .search-row button { padding: 13px 24px; background: #1B3A28; color: #F0E8D5; border: none; border-radius: 3px; font-size: 14px; font-family: Georgia, serif; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; }
     .search-row button:disabled { opacity: 0.5; cursor: not-allowed; }
     .search-hint { font-size: 12px; color: #8C7B52; font-style: italic; margin-bottom: 24px; }
-    .section { background: #FDF8F0; border: 1px solid #D4C8A8; border-radius: 4px; overflow: hidden; margin-bottom: 16px; }
-    .section-head { display: flex; align-items: center; gap: 10px; padding: 10px 16px; background: #1B3A28; }
-    .source-tag { font-size: 10px; letter-spacing: 1px; text-transform: uppercase; background: #8C7B52; color: #F0E8D5; padding: 2px 8px; border-radius: 2px; }
-    .section-title { font-size: 13px; font-weight: normal; letter-spacing: 1px; color: #F0E8D5; text-transform: uppercase; }
-    .section-body { padding: 10px 12px; }
-    .person-btn { display: flex; align-items: center; justify-content: space-between; width: 100%; text-align: left; padding: 10px 12px; margin-bottom: 4px; border: 1px solid #D4C8A8; border-radius: 3px; background: transparent; cursor: pointer; font-family: Georgia, serif; font-size: 14px; color: #1E1A14; }
-    .person-btn:hover { background: #F0E8D5; }
-    .person-btn.active { background: #1B3A28; color: #F0E8D5; border-color: #1B3A28; }
-    .detail-box { padding: 14px; }
-    .detail-name { font-size: 20px; font-weight: bold; color: #1B3A28; margin-bottom: 6px; }
-    .detail-meta { font-size: 13px; color: #5C5040; margin-bottom: 4px; }
-    .detail-meta strong { color: #1E1A14; }
-    .unit-section { margin: 14px 0; border-top: 1px solid #D4C8A8; padding-top: 12px; }
-    .unit-title { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #5C5040; margin-bottom: 8px; }
-    .unit-card { display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; border: 1px solid #D4C8A8; border-radius: 3px; margin-bottom: 6px; background: #F8F3E8; }
-    .unit-name { font-size: 14px; font-weight: bold; color: #1B3A28; }
-    .unit-search-btn { font-size: 12px; color: #8C7B52; background: none; border: 1px solid #C8B88A; border-radius: 3px; padding: 3px 8px; cursor: pointer; font-family: Georgia, serif; }
-    .unit-search-btn:hover { background: #F0E8D5; }
-    .link-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
-    .ext-link { font-size: 13px; color: #1B3A28; text-decoration: none; border: 1px solid #8C7B52; border-radius: 3px; padding: 6px 12px; }
-    .ext-link:hover { background: #F0E8D5; }
-    .photo-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
-    .photo-card { border: 1px solid #D4C8A8; border-radius: 3px; overflow: hidden; text-decoration: none; color: #1E1A14; display: block; }
-    .photo-card img { width: 100%; height: 120px; object-fit: cover; display: block; filter: sepia(15%); }
-    .photo-ph { width: 100%; height: 120px; background: #E8E0CC; display: flex; align-items: center; justify-content: center; font-size: 28px; }
-    .photo-title { font-size: 11px; padding: 6px 8px; color: #5C5040; line-height: 1.3; }
-    .diary-info { font-size: 11px; color: #8C7B52; font-style: italic; padding: 4px 4px 8px; }
-    .diary-card { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border: 1px solid #D4C8A8; border-radius: 3px; margin-bottom: 4px; text-decoration: none; color: #1E1A14; font-size: 13px; }
-    .diary-card:hover { background: #F0E8D5; }
-    .diary-year { color: #8C7B52; font-size: 12px; margin-left: 8px; flex-shrink: 0; }
-    .sotapolku-body { padding: 16px; }
-    .sotapolku-desc { font-size: 13px; color: #5C5040; line-height: 1.6; margin-bottom: 14px; }
-    .sotapolku-btn { display: inline-block; padding: 11px 22px; background: #2C4A1C; color: #F0E8D5; text-decoration: none; border-radius: 3px; font-size: 14px; font-family: Georgia, serif; }
-    .sotapolku-btn:hover { background: #1B3A28; }
-    .sotapolku-note { font-size: 11px; color: #8C7B52; font-style: italic; margin-top: 10px; }
-    .pro-banner { border: 1.5px solid #8C7B52; border-left: 5px solid #8C7B52; border-radius: 4px; padding: 14px 16px; background: #FDF8F0; margin-bottom: 16px; }
-    .pro-banner strong { display: block; font-size: 13px; color: #1B3A28; margin-bottom: 4px; }
-    .pro-banner p { font-size: 12px; color: #5C5040; line-height: 1.5; }
-    .empty { font-size: 13px; color: #8C7B52; font-style: italic; padding: 8px 4px; }
-    .loading { font-size: 13px; color: #8C7B52; padding: 8px 4px; }
+    .person-btn { display: flex; align-items: center; justify-content: space-between; width: 100%; text-align: left; padding: 12px 14px; margin-bottom: 5px; border: 1px solid #D4C8A8; border-radius: 3px; background: #FDF8F0; cursor: pointer; font-family: Georgia, serif; font-size: 15px; color: #1E1A14; }
+    .person-btn:hover { background: #EDE5D0; border-color: #8C7B52; }
+    .person-btn span.arrow { color: #8C7B52; }
     .placeholder { text-align: center; padding: 48px 16px; color: #8C7B52; }
     .placeholder-icon { font-size: 40px; margin-bottom: 16px; }
     .placeholder p { font-size: 14px; line-height: 1.8; font-style: italic; }
+
+    /* HENKILÖ-NÄKYMÄ */
+    #view-person { display: none; }
+    .person-layout { display: grid; grid-template-columns: 340px 1fr; min-height: calc(100vh - 68px); }
+    @media (max-width: 800px) { .person-layout { grid-template-columns: 1fr; } }
+
+    /* Vasen palkki */
+    .person-sidebar { background: #FDF8F0; border-right: 1px solid #D4C8A8; padding: 20px; overflow-y: auto; }
+    .person-name { font-size: 22px; font-weight: bold; color: #1B3A28; margin-bottom: 4px; }
+    .person-rank { font-size: 14px; color: #5C5040; margin-bottom: 14px; }
+    .info-row { font-size: 13px; color: #5C5040; margin-bottom: 4px; }
+    .info-row strong { color: #1E1A14; }
+    .divider { border: none; border-top: 1px solid #D4C8A8; margin: 14px 0; }
+
+    .section-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: #8C7B52; margin-bottom: 8px; display: block; }
+
+    /* Yksikkökortit */
+    .unit-card { border: 1px solid #D4C8A8; border-radius: 3px; padding: 10px 12px; margin-bottom: 8px; background: #F5EFE0; }
+    .unit-name { font-size: 14px; font-weight: bold; color: #1B3A28; margin-bottom: 6px; }
+    .unit-links { display: flex; gap: 6px; flex-wrap: wrap; }
+    .small-link { font-size: 11px; color: #1B3A28; text-decoration: none; border: 1px solid #C8B88A; border-radius: 2px; padding: 3px 8px; }
+    .small-link:hover { background: #F0E8D5; }
+
+    /* Tapahtumat / taistelut */
+    .battle-item { display: flex; gap: 10px; padding: 8px 0; border-bottom: 1px solid #EDE5D0; cursor: pointer; }
+    .battle-item:hover { background: #F5EFE0; margin: 0 -4px; padding: 8px 4px; }
+    .battle-item:last-child { border-bottom: none; }
+    .battle-dot { width: 8px; height: 8px; border-radius: 50%; background: #8C7B52; flex-shrink: 0; margin-top: 5px; }
+    .battle-dot.has-coords { background: #1B3A28; }
+    .battle-info { flex: 1; }
+    .battle-name { font-size: 13px; font-weight: bold; color: #1E1A14; }
+    .battle-place { font-size: 12px; color: #5C5040; }
+    .battle-date { font-size: 11px; color: #8C7B52; }
+
+    /* Kuvat */
+    .photo-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
+    .photo-thumb { border: 1px solid #D4C8A8; border-radius: 2px; overflow: hidden; text-decoration: none; display: block; }
+    .photo-thumb img { width: 100%; height: 90px; object-fit: cover; display: block; filter: sepia(20%); }
+    .photo-thumb-title { font-size: 10px; padding: 4px 6px; color: #5C5040; line-height: 1.2; }
+
+    /* Sotapolku */
+    .sotapolku-btn { display: block; text-align: center; padding: 10px; background: #2C4A1C; color: #F0E8D5; text-decoration: none; border-radius: 3px; font-size: 13px; font-family: Georgia, serif; margin-top: 8px; }
+    .sotapolku-btn:hover { background: #1B3A28; }
+
+    /* Kartta oikealla */
+    .map-area { display: flex; flex-direction: column; }
+    #map { flex: 1; min-height: 500px; }
+    .map-info { padding: 12px 16px; background: #1B3A28; color: #A89878; font-size: 12px; letter-spacing: 1px; }
+    .map-legend { display: flex; gap: 16px; }
+    .legend-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 4px; }
+
+    /* Yleiset */
+    .empty { font-size: 13px; color: #8C7B52; font-style: italic; padding: 6px 0; }
+    .loading { font-size: 13px; color: #8C7B52; padding: 6px 0; }
     .hidden { display: none; }
   </style>
 </head>
 <body>
+
 <header>
-  <h1>Sota-arkistohaku</h1>
-  <p>Talvi- ja jatkosodan henkilöhistoria</p>
-</header>
-<main>
-  <div class="sources">
-    <span class="badge">📚 Sotasampo</span>
-    <span class="badge">📷 SA-kuva / Finna</span>
-    <span class="badge">📄 Kansallisarkisto / Finna</span>
-    <span class="badge">🗺️ Sotapolku.fi</span>
+  <button class="back-btn" id="backBtn" onclick="naytaHaku()">← Takaisin</button>
+  <div>
+    <div class="header-title">Sota-arkistohaku</div>
+    <div class="header-sub">Talvi- ja jatkosodan henkilöhistoria</div>
   </div>
+</header>
+
+<!-- NÄKYMÄ 1: HAKU -->
+<div id="view-search">
   <label class="search-label">Henkilön nimi</label>
   <div class="search-row">
     <input type="text" id="searchInput" placeholder="esim. Korhonen tai Mäkinen Eino" />
     <button id="searchBtn" onclick="doSearch()">Hae</button>
   </div>
-  <p class="search-hint">Kirjoita sukunimi ensin, esim. "Virtanen" tai "Leinonen Paavo"</p>
-
-  <div class="placeholder" id="placeholder">
-    <div class="placeholder-icon">🏛️</div>
-    <p>Hae suomalaisten sotilaiden tietoja talvi- ja jatkosodasta.<br>
-    Tiedot haetaan reaaliajassa Sotasammosta, SA-kuvista<br>ja Kansallisarkistosta.</p>
-  </div>
-
-  <div class="hidden" id="results">
-    <div class="section">
-      <div class="section-head">
-        <span class="source-tag">Sotasampo</span>
-        <span class="section-title">Henkilöt – valitse nimi</span>
-      </div>
-      <div class="section-body" id="personsBody"><p class="loading">Ladataan...</p></div>
-    </div>
-
-    <div class="section hidden" id="detailSection">
-      <div class="section-head">
-        <span class="source-tag">Tiedot</span>
-        <span class="section-title" id="detailLabel">–</span>
-      </div>
-      <div class="detail-box" id="detailBody"></div>
-    </div>
-
-    <div class="section">
-      <div class="section-head">
-        <span class="source-tag">SA-kuva</span>
-        <span class="section-title">Valokuvat</span>
-      </div>
-      <div class="section-body" id="photosBody"><p class="loading">Ladataan...</p></div>
-    </div>
-
-    <div class="section">
-      <div class="section-head">
-        <span class="source-tag">Kansallisarkisto</span>
-        <span class="section-title" id="diariesTitle">Sotapäiväkirjat</span>
-      </div>
-      <div class="section-body" id="diariesBody"><p class="loading">Ladataan...</p></div>
-    </div>
-
-    <div class="section">
-      <div class="section-head" style="background:#2C4A1C">
-        <span class="source-tag" style="background:#4A7A2C">Sotapolku.fi</span>
-        <span class="section-title">Sijoituspaikat ja sotapolku</span>
-      </div>
-      <div class="sotapolku-body">
-        <p class="sotapolku-desc">Sotapolku.fi sisältää henkilökohtaiset sijoituspaikat, joukko-osastot, karttapohjaisen sotapolun sekä tiedot menehtymisestä ja hautapaikasta.</p>
-        <a id="sotapolkuBtn" href="https://sotapolku.fi/henkilot/" target="_blank" rel="noopener" class="sotapolku-btn">Hae Sotapolku.fi:stä ↗</a>
-        <p class="sotapolku-note">Avautuu uudessa välilehdessä. Kirjoita nimi hakukenttään etunimi ja sukunimi erikseen.</p>
-      </div>
-    </div>
-
-    <div class="pro-banner">
-      <strong>⚡ Maksullinen versio – automaattinen AI-narratiivi</strong>
-      <p>Claude API yhdistää kaikki lähdetiedot ja kirjoittaa suomenkielisen tarinan henkilön sota-ajasta automaattisesti.</p>
+  <p class="search-hint">Kirjoita sukunimi ensin – esim. "Virtanen" tai "Leinonen Paavo"</p>
+  <div id="searchResults">
+    <div class="placeholder">
+      <div class="placeholder-icon">🏛️</div>
+      <p>Hae suomalaisten sotilaiden tietoja<br>talvi- ja jatkosodasta.</p>
     </div>
   </div>
-</main>
+</div>
+
+<!-- NÄKYMÄ 2: HENKILÖSIVU -->
+<div id="view-person">
+  <div class="person-layout">
+    <div class="person-sidebar" id="sidebar">
+      <p class="loading">Ladataan...</p>
+    </div>
+    <div class="map-area">
+      <div class="map-info">
+        <div class="map-legend">
+          <span><span class="legend-dot" style="background:#1B3A28"></span>Taistelupaikka kartalla</span>
+          <span><span class="legend-dot" style="background:#8C7B52"></span>Ei koordinaatteja</span>
+        </div>
+      </div>
+      <div id="map"></div>
+    </div>
+  </div>
+</div>
 
 <script>
-  var persons = [];
+var persons = [];
+var kartta = null;
+var karttaMerkit = [];
 
-  function sparqlHae(query, cb) {
-    var url = '/api/sparql?_t=' + Date.now() + '&query=' + encodeURIComponent(query);
-    fetch(url, { cache: 'no-store' })
-      .then(function(r) { return r.json(); })
-      .then(function(d) { cb(null, (d.results && d.results.bindings) ? d.results.bindings : []); })
-      .catch(function(e) { cb(e.message, []); });
+// ---- SPARQL-apufunktio ----
+function sparql(query, cb) {
+  fetch('/api/sparql?_t=' + Date.now() + '&query=' + encodeURIComponent(query), { cache: 'no-store' })
+    .then(function(r) { return r.json(); })
+    .then(function(d) { cb(null, d.results && d.results.bindings ? d.results.bindings : []); })
+    .catch(function(e) { cb(e.message, []); });
+}
+
+// ---- NÄKYMIEN VAIHTO ----
+function naytaHaku() {
+  document.getElementById('view-search').style.display = '';
+  document.getElementById('view-person').style.display = 'none';
+  document.getElementById('backBtn').style.display = 'none';
+}
+
+function naytaHenkilo() {
+  document.getElementById('view-search').style.display = 'none';
+  document.getElementById('view-person').style.display = '';
+  document.getElementById('backBtn').style.display = '';
+  // Alustetaan kartta vasta kun näkymä on näkyvissä
+  if (!kartta) {
+    kartta = L.map('map').setView([61.5, 27.0], 6);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap'
+    }).addTo(kartta);
   }
+}
 
-  function doSearch() {
-    var term = document.getElementById('searchInput').value.trim();
-    if (!term) return;
+// ---- HAKU ----
+function doSearch() {
+  var term = document.getElementById('searchInput').value.trim();
+  if (!term) return;
+  var btn = document.getElementById('searchBtn');
+  btn.disabled = true; btn.textContent = 'Haetaan...';
+  persons = [];
 
-    document.getElementById('placeholder').classList.add('hidden');
-    document.getElementById('results').classList.remove('hidden');
-    document.getElementById('detailSection').classList.add('hidden');
-    document.getElementById('personsBody').innerHTML = '<p class="loading">Haetaan Sotasammosta...</p>';
-    document.getElementById('photosBody').innerHTML = '<p class="loading">Ladataan kuvia...</p>';
-    document.getElementById('diariesBody').innerHTML = '<p class="loading">Ladataan...</p>';
-    document.getElementById('diariesTitle').textContent = 'Sotapäiväkirjat';
-    document.getElementById('sotapolkuBtn').textContent = 'Hae "' + term + '" Sotapolku.fi:stä ↗';
+  var q = 'PREFIX skos: <http://www.w3.org/2004/02/skos/core#>\n' +
+    'SELECT DISTINCT ?person ?name WHERE {\n' +
+    '  ?person skos:prefLabel ?name .\n' +
+    '  FILTER(CONTAINS(LCASE(str(?name)), LCASE("' + term.replace(/"/g,'\\"') + '")))\n' +
+    '}\nORDER BY ?name\nLIMIT 30';
 
-    var btn = document.getElementById('searchBtn');
-    btn.disabled = true;
-    btn.textContent = 'Haetaan...';
-    persons = [];
-
-    var q = 'PREFIX skos: <http://www.w3.org/2004/02/skos/core#>\n' +
-      'SELECT DISTINCT ?person ?name WHERE {\n' +
-      '  ?person skos:prefLabel ?name .\n' +
-      '  FILTER(CONTAINS(LCASE(str(?name)), LCASE("' + term.replace(/"/g,'\\"') + '")))\n' +
-      '}\nORDER BY ?name\nLIMIT 30';
-
-    sparqlHae(q, function(err, rows) {
-      btn.disabled = false;
-      btn.textContent = 'Hae';
-      var pb = document.getElementById('personsBody');
-      if (err || !rows.length) {
-        pb.innerHTML = '<p class="empty">Ei tuloksia nimellä "' + term + '". Kokeile pelkkää sukunimeä.</p>';
-      } else {
-        persons = rows.map(function(r) {
-          return { uri: r.person ? r.person.value : '', name: r.name ? r.name.value : '' };
-        });
-        pb.innerHTML = persons.map(function(p, i) {
-          return '<button class="person-btn" onclick="valitsePerson(' + i + ')">' +
-            '<span>' + p.name + '</span><span>→</span></button>';
-        }).join('');
-      }
-    });
-
-    // SA-kuva haku
-    fetch('https://api.finna.fi/v1/search?lookfor=' + encodeURIComponent(term) + '&limit=6&filter%5B%5D=building%3A0%2Fsa-kuva%2F')
-      .then(function(r) { return r.json(); })
-      .then(function(d) {
-        var records = d.records || [];
-        var phb = document.getElementById('photosBody');
-        if (!records.length) {
-          phb.innerHTML = '<p class="empty">Ei SA-kuvia tällä nimellä. Kokeile joukko-osaston nimeä, esim. "JR 37".</p>';
-        } else {
-          phb.innerHTML = '<div class="photo-grid">' + records.slice(0,4).map(function(r) {
-            var src = r.images && r.images[0] ? 'https://www.finna.fi' + r.images[0] : null;
-            var img = src ? '<img src="' + src + '" alt="" loading="lazy" onerror="this.parentNode.innerHTML=\'<div class=photo-ph>📷</div>\'">'
-                          : '<div class="photo-ph">📷</div>';
-            return '<a href="https://www.finna.fi/Record/' + encodeURIComponent(r.id) + '" target="_blank" rel="noopener" class="photo-card">' +
-              img + '<p class="photo-title">' + (r.title || '').substring(0,60) + '</p></a>';
-          }).join('') + '</div>';
-        }
-      }).catch(function() {
-        document.getElementById('photosBody').innerHTML = '<p class="empty">Kuvahaun virhe.</p>';
-      });
-  }
-
-  function valitsePerson(i) {
-    var p = persons[i];
-    if (!p) return;
-
-    document.querySelectorAll('.person-btn').forEach(function(b, j) {
-      b.classList.toggle('active', j === i);
-    });
-
-    document.getElementById('detailLabel').textContent = p.name;
-    document.getElementById('detailBody').innerHTML = '<p class="loading">Haetaan tietoja Sotasammosta...</p>';
-    document.getElementById('detailSection').classList.remove('hidden');
-    document.getElementById('diariesBody').innerHTML = '<p class="loading">Odotetaan joukko-osastotietoja...</p>';
-
-    // Haetaan henkilön kaikki tiedot
-    var q = 'PREFIX skos: <http://www.w3.org/2004/02/skos/core#>\n' +
-      'SELECT DISTINCT ?prop ?val ?label WHERE {\n' +
-      '  <' + p.uri + '> ?prop ?val .\n' +
-      '  OPTIONAL { ?val skos:prefLabel ?label . FILTER(langMatches(lang(?label), "fi") || lang(?label) = "") }\n' +
-      '  FILTER(!isBlank(?val))\n' +
-      '}\nLIMIT 150';
-
-    sparqlHae(q, function(err, rows) {
-      if (err) {
-        document.getElementById('detailBody').innerHTML = '<p class="empty">Tietojen haku epäonnistui: ' + err + '</p>';
-        return;
-      }
-
-      var yksikot = [];
-      var arvo = '';
-      var syntyma = '';
-      var kuolema = '';
-      var kotikunta = '';
-
-      rows.forEach(function(row) {
-        var prop  = row.prop  ? row.prop.value  : '';
-        var val   = row.val   ? row.val.value   : '';
-        var label = row.label ? row.label.value : '';
-
-        // Joukko-osasto / yksikkö
-        if ((prop.indexOf('member') > -1 || prop.indexOf('unit') > -1 || prop.indexOf('Unit') > -1) && label) {
-          var exists = yksikot.some(function(u) { return u.uri === val; });
-          if (!exists) yksikot.push({ uri: val, name: label });
-        }
-        // Arvo / sotilasarvo
-        if ((prop.indexOf('rank') > -1 || prop.indexOf('Rank') > -1) && label && !arvo) arvo = label;
-        // Syntymä
-        if (prop.indexOf('birth') > -1 && !syntyma) {
-          var m = val.match(/\d{4}/);
-          if (m) syntyma = m[0];
-        }
-        // Kuolema
-        if ((prop.indexOf('death') > -1 || prop.indexOf('Death') > -1) && !kuolema) {
-          var m2 = val.match(/\d{4}/);
-          if (m2) kuolema = m2[0];
-        }
-        // Kotikunta
-        if (prop.indexOf('municipality') > -1 && label && !kotikunta) kotikunta = label;
-      });
-
-      var sampoUrl = 'https://www.sotasampo.fi/fi/persons/?uri=' + encodeURIComponent(p.uri);
-      var finnaUrl = 'https://www.finna.fi/Search/Results?lookfor=' + encodeURIComponent(p.name) + '&filter%5B%5D=building%3A0%2FKansallisarkisto%2F';
-
-      var html = '<p class="detail-name">' + p.name + '</p>';
-      if (arvo) html += '<p class="detail-meta">Sotilasarvo: <strong>' + arvo + '</strong></p>';
-      if (syntyma || kuolema) html += '<p class="detail-meta">Vuodet: <strong>' + (syntyma || '?') + (kuolema ? ' – ' + kuolema : '') + '</strong></p>';
-      if (kotikunta) html += '<p class="detail-meta">Kotikunta: <strong>' + kotikunta + '</strong></p>';
-
-      if (yksikot.length > 0) {
-        html += '<div class="unit-section"><p class="unit-title">Joukko-osastot</p>';
-        yksikot.forEach(function(u, ui) {
-          html += '<div class="unit-card">' +
-            '<span class="unit-name">' + u.name + '</span>' +
-            '<button class="unit-search-btn" onclick="haeYksikko(\'' + ui + '\',' + i + ')">Hae päiväkirjat ↓</button>' +
-            '</div>';
-        });
-        html += '</div>';
-        // Haetaan automaattisesti ensimmäisen yksikön päiväkirjat
-        haeYksikkonPaivakirjat(yksikot[0].name);
-      } else {
-        document.getElementById('diariesBody').innerHTML =
-          '<p class="empty">Sotasammossa ei joukko-osastotietoa tällä henkilöllä. Kokeile hakea yksikön nimellä suoraan.</p>';
-      }
-
-      html += '<div class="link-row">' +
-        '<a href="' + sampoUrl + '" target="_blank" rel="noopener" class="ext-link">Avaa Sotasammossa ↗</a>' +
-        '<a href="https://sotapolku.fi/henkilot/" target="_blank" rel="noopener" class="ext-link">Hae Sotapolulta ↗</a>' +
-        '<a href="' + finnaUrl + '" target="_blank" rel="noopener" class="ext-link">Kansallisarkisto Finnassa ↗</a>' +
-        '</div>';
-
-      document.getElementById('detailBody').innerHTML = html;
-    });
-  }
-
-  // Tallennetaan yksiköt henkilökohtaisesti jotta "Hae päiväkirjat"-nappi toimii
-  var kaikkiYksikot = [];
-
-  function haeYksikko(ui, pi) {
-    // Haetaan yksikkö uudelleen hakemalla henkilön tiedot
-    var p = persons[pi];
-    var q = 'PREFIX skos: <http://www.w3.org/2004/02/skos/core#>\n' +
-      'SELECT DISTINCT ?prop ?val ?label WHERE {\n' +
-      '  <' + p.uri + '> ?prop ?val .\n' +
-      '  OPTIONAL { ?val skos:prefLabel ?label . FILTER(langMatches(lang(?label), "fi") || lang(?label) = "") }\n' +
-      '  FILTER(!isBlank(?val))\n' +
-      '}\nLIMIT 150';
-    sparqlHae(q, function(err, rows) {
-      var yksikot = [];
-      rows.forEach(function(row) {
-        var prop  = row.prop  ? row.prop.value  : '';
-        var val   = row.val   ? row.val.value   : '';
-        var label = row.label ? row.label.value : '';
-        if ((prop.indexOf('member') > -1 || prop.indexOf('unit') > -1 || prop.indexOf('Unit') > -1) && label) {
-          var exists = yksikot.some(function(u) { return u.uri === val; });
-          if (!exists) yksikot.push({ uri: val, name: label });
-        }
-      });
-      if (yksikot[ui]) haeYksikkonPaivakirjat(yksikot[ui].name);
-    });
-  }
-
-  function haeYksikkonPaivakirjat(unitName) {
-    var db = document.getElementById('diariesBody');
-    var title = document.getElementById('diariesTitle');
-    db.innerHTML = '<p class="loading">Haetaan päiväkirjoja: "' + unitName + '"...</p>';
-    title.textContent = 'Sotapäiväkirjat';
-
-    fetch('https://api.finna.fi/v1/search?lookfor=' + encodeURIComponent(unitName) + '&limit=8&filter%5B%5D=building%3A0%2FKansallisarkisto%2F')
-      .then(function(r) { return r.json(); })
-      .then(function(d) {
-        var records = d.records || [];
-        title.textContent = 'Sotapäiväkirjat – ' + unitName;
-        if (!records.length) {
-          db.innerHTML = '<p class="empty">Ei päiväkirjoja yksikölle "' + unitName + '".</p>';
-        } else {
-          db.innerHTML = records.map(function(r) {
-            return '<a href="https://www.finna.fi/Record/' + encodeURIComponent(r.id) + '" target="_blank" rel="noopener" class="diary-card">' +
-              '<span>' + (r.title || r.id) + '</span>' +
-              (r.year ? '<span class="diary-year">' + r.year + '</span>' : '') +
-              '</a>';
-          }).join('');
-        }
-      }).catch(function() {
-        db.innerHTML = '<p class="empty">Päiväkirjahaun virhe.</p>';
-      });
-  }
-
-  document.getElementById('searchInput').addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') doSearch();
+  sparql(q, function(err, rows) {
+    btn.disabled = false; btn.textContent = 'Hae';
+    var el = document.getElementById('searchResults');
+    if (!rows.length) {
+      el.innerHTML = '<p class="empty">Ei tuloksia nimellä "' + term + '". Kokeile pelkkää sukunimeä.</p>';
+    } else {
+      persons = rows.map(function(r) { return { uri: r.person.value, name: r.name.value }; });
+      el.innerHTML = persons.map(function(p, i) {
+        return '<button class="person-btn" onclick="avaaHenkilo(' + i + ')">' +
+          '<span>' + p.name + '</span><span class="arrow">→</span></button>';
+      }).join('');
+    }
   });
+}
+
+// ---- AVAA HENKILÖ ----
+function avaaHenkilo(i) {
+  var p = persons[i];
+  naytaHenkilo();
+
+  // Tyhjennä kartta
+  karttaMerkit.forEach(function(m) { kartta.removeLayer(m); });
+  karttaMerkit = [];
+
+  document.getElementById('sidebar').innerHTML = '<p class="loading">Haetaan tietoja...</p>';
+
+  // Hae henkilön kaikki tiedot
+  var q = 'PREFIX skos: <http://www.w3.org/2004/02/skos/core#>\n' +
+    'SELECT DISTINCT ?prop ?val ?label WHERE {\n' +
+    '  <' + p.uri + '> ?prop ?val .\n' +
+    '  OPTIONAL { ?val skos:prefLabel ?label .\n' +
+    '    FILTER(langMatches(lang(?label), "fi") || lang(?label) = "") }\n' +
+    '  FILTER(!isBlank(?val))\n' +
+    '} LIMIT 150';
+
+  sparql(q, function(err, rows) {
+    var arvo = '', syntyma = '', kuolema = '', kotikunta = '';
+    var yksikot = [];
+
+    rows.forEach(function(r) {
+      var prop = r.prop ? r.prop.value : '';
+      var val  = r.val  ? r.val.value  : '';
+      var lbl  = r.label ? r.label.value : '';
+      if ((prop.indexOf('rank') > -1) && lbl && !arvo) arvo = lbl;
+      if (prop.indexOf('birth') > -1 && !syntyma) { var m = val.match(/\d{4}/); if (m) syntyma = m[0]; }
+      if (prop.indexOf('death') > -1 && !kuolema) { var m2 = val.match(/\d{4}/); if (m2) kuolema = m2[0]; }
+      if (prop.indexOf('municipality') > -1 && lbl && !kotikunta) kotikunta = lbl;
+      if ((prop.indexOf('member') > -1 || prop.indexOf('unit') > -1) && lbl) {
+        if (!yksikot.some(function(u) { return u.uri === val; }))
+          yksikot.push({ uri: val, name: lbl });
+      }
+    });
+
+    var html = '<p class="person-name">' + p.name + '</p>';
+    if (arvo) html += '<p class="person-rank">' + arvo + '</p>';
+    html += '<hr class="divider">';
+    if (syntyma || kuolema) html += '<p class="info-row"><strong>' + (syntyma||'?') + (kuolema ? ' – ' + kuolema : '') + '</strong></p>';
+    if (kotikunta) html += '<p class="info-row">Kotikunta: <strong>' + kotikunta + '</strong></p>';
+
+    html += '<hr class="divider">';
+    html += '<span class="section-label">Linkit</span>';
+    html += '<a href="https://www.sotasampo.fi/fi/persons/?uri=' + encodeURIComponent(p.uri) + '" target="_blank" class="small-link" style="display:inline-block;margin-bottom:6px">Sotasampo ↗</a> ';
+    html += '<a id="sotapolku-link" href="https://sotapolku.fi/henkilot/" target="_blank" class="small-link" style="display:inline-block;margin-bottom:6px">Sotapolku.fi ↗</a>';
+
+    html += '<hr class="divider">';
+
+    if (yksikot.length) {
+      html += '<span class="section-label">Joukko-osastot</span>';
+      yksikot.forEach(function(u, ui) {
+        html += '<div class="unit-card">';
+        html += '<div class="unit-name">' + u.name + '</div>';
+        html += '<div class="unit-links">';
+        html += '<a href="https://www.sotasampo.fi/fi/units/?uri=' + encodeURIComponent(u.uri) + '" target="_blank" class="small-link">Sotasampo ↗</a>';
+        html += '</div></div>';
+        // Hae automaattisesti ensimmäisen yksikön tapahtumat
+        if (ui === 0) haeTapahtumat(u.uri, u.name, html, yksikot, p.name);
+      });
+    } else {
+      html += '<p class="empty">Ei joukko-osastotietoa Sotasammossa.</p>';
+      document.getElementById('sidebar').innerHTML = html + haeKuvaHTML(p.name, '');
+      haeKuvat(p.name);
+    }
+  });
+}
+
+// ---- HAE TAPAHTUMAT ----
+function haeTapahtumat(unitUri, unitName, existingHtml, yksikot, personName) {
+  var q = 'PREFIX skos: <http://www.w3.org/2004/02/skos/core#>\n' +
+    'PREFIX crm: <http://www.cidoc-crm.org/cidoc-crm/>\n' +
+    'PREFIX wgs: <http://www.w3.org/2003/01/geo/wgs84_pos#>\n' +
+    'SELECT DISTINCT ?event ?ename ?place ?pname ?lat ?lon ?start WHERE {\n' +
+    '  ?event crm:P11_had_participant <' + unitUri + '> .\n' +
+    '  ?event skos:prefLabel ?ename .\n' +
+    '  OPTIONAL {\n' +
+    '    ?event crm:P7_took_place_at ?place .\n' +
+    '    ?place skos:prefLabel ?pname .\n' +
+    '    OPTIONAL { ?place wgs:lat ?lat ; wgs:long ?lon }\n' +
+    '  }\n' +
+    '  OPTIONAL {\n' +
+    '    ?event crm:P4_has_time-span ?ts .\n' +
+    '    ?ts crm:P82a_begin_of_the_begin ?start .\n' +
+    '  }\n' +
+    '} ORDER BY ?start LIMIT 60';
+
+  sparql(q, function(err, rows) {
+    var html = existingHtml;
+
+    html += '<hr class="divider">';
+    html += '<span class="section-label">Taistelutapahtumat – ' + unitName + '</span>';
+
+    if (!rows.length) {
+      html += '<p class="empty">Ei taistelutietoja Sotasammossa tälle yksikölle.</p>';
+    } else {
+      // Lisää karttamerkit
+      var bounds = [];
+      rows.forEach(function(r) {
+        var lat = r.lat ? parseFloat(r.lat.value) : null;
+        var lon = r.lon ? parseFloat(r.lon.value) : null;
+        var ename = r.ename ? r.ename.value : '';
+        var pname = r.pname ? r.pname.value : '';
+        var start = r.start ? r.start.value.substring(0,10) : '';
+        var hasCoords = lat && lon && !isNaN(lat) && !isNaN(lon);
+
+        if (hasCoords) {
+          var marker = L.circleMarker([lat, lon], {
+            radius: 7, fillColor: '#1B3A28', color: '#8C7B52',
+            weight: 2, opacity: 1, fillOpacity: 0.8
+          }).addTo(kartta);
+          marker.bindPopup('<strong>' + ename + '</strong>' + (pname ? '<br>' + pname : '') + (start ? '<br>' + start : ''));
+          karttaMerkit.push(marker);
+          bounds.push([lat, lon]);
+        }
+
+        html += '<div class="battle-item" ' + (hasCoords ? 'onclick="zoomTo(' + lat + ',' + lon + ')"' : '') + '>' +
+          '<div class="battle-dot' + (hasCoords ? ' has-coords' : '') + '"></div>' +
+          '<div class="battle-info">' +
+          '<div class="battle-name">' + ename + '</div>' +
+          (pname ? '<div class="battle-place">' + pname + '</div>' : '') +
+          (start ? '<div class="battle-date">' + start + '</div>' : '') +
+          '</div></div>';
+      });
+
+      if (bounds.length > 1) kartta.fitBounds(bounds, { padding: [30, 30] });
+      else if (bounds.length === 1) kartta.setView(bounds[0], 10);
+    }
+
+    // Lisää kuvat
+    html += '<hr class="divider">';
+    html += '<span class="section-label">Valokuvat – ' + unitName + '</span>';
+    html += '<div id="photo-container"><p class="loading">Ladataan kuvia...</p></div>';
+    html += '<a href="https://sotapolku.fi/henkilot/" target="_blank" class="sotapolku-btn">Avaa Sotapolku.fi ↗</a>';
+
+    document.getElementById('sidebar').innerHTML = html;
+    haeKuvat(unitName);
+  });
+}
+
+// ---- HAE KUVAT ----
+function haeKuvat(hakusana) {
+  fetch('https://api.finna.fi/v1/search?lookfor=' + encodeURIComponent(hakusana) + '&limit=6&filter%5B%5D=building%3A0%2Fsa-kuva%2F')
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      var el = document.getElementById('photo-container');
+      if (!el) return;
+      var records = d.records || [];
+      if (!records.length) {
+        el.innerHTML = '<p class="empty">Ei SA-kuvia hakusanalla "' + hakusana + '".</p>';
+      } else {
+        el.innerHTML = '<div class="photo-grid">' + records.slice(0,6).map(function(r) {
+          var src = r.images && r.images[0] ? 'https://www.finna.fi' + r.images[0] : null;
+          var img = src ? '<img src="' + src + '" alt="" loading="lazy" onerror="this.parentNode.innerHTML=\'📷\'">'
+                       : '<div style="height:90px;background:#E8E0CC;display:flex;align-items:center;justify-content:center">📷</div>';
+          return '<a href="https://www.finna.fi/Record/' + encodeURIComponent(r.id) + '" target="_blank" class="photo-thumb">' +
+            img + '<div class="photo-thumb-title">' + (r.title||'').substring(0,50) + '</div></a>';
+        }).join('') + '</div>';
+      }
+    }).catch(function() {
+      var el = document.getElementById('photo-container');
+      if (el) el.innerHTML = '<p class="empty">Kuvahaun virhe.</p>';
+    });
+}
+
+function zoomTo(lat, lon) {
+  if (kartta) kartta.setView([lat, lon], 12);
+}
+
+document.getElementById('searchInput').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') doSearch();
+});
 </script>
 </body>
 </html>
