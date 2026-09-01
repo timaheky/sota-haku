@@ -230,16 +230,17 @@ function avaaHenkilo(i) {
 
     rows.forEach(function(r) {
       var prop=r.prop?r.prop.value:'', val=r.val?r.val.value:'', lbl=r.label?r.label.value:'';
-      var propEnd = prop.split('/').pop().split('#').pop().toLowerCase();
-      if ((propEnd==='rank'||propEnd.indexOf('rank')>-1||propEnd==='sotilasarvo'||propEnd==='arvo') && lbl && !data.arvo) data.arvo=lbl;
-      if ((propEnd.indexOf('birth')>-1||propEnd.indexOf('syntym')>-1||propEnd==='birthdate') && !data.syntyma) { var m=val.match(/\d{4}-\d{2}-\d{2}|\d{4}/); if(m) data.syntyma=m[0]; }
-      if ((propEnd.indexOf('death')>-1||propEnd.indexOf('kuolin')>-1||propEnd==='deathdate') && !data.kuolema) { var m2=val.match(/\d{4}-\d{2}-\d{2}|\d{4}/); if(m2) data.kuolema=m2[0]; }
-      if ((propEnd.indexOf('home')>-1||propEnd.indexOf('kotikunta')>-1||propEnd==='municipality') && lbl && !data.kotikunta) data.kotikunta=lbl;
-      if ((propEnd.indexOf('birth_mun')>-1||propEnd.indexOf('syntymakunta')>-1) && lbl && !data.syntymakunta) data.syntymakunta=lbl;
-      if ((propEnd.indexOf('occup')>-1||propEnd.indexOf('ammatti')>-1||propEnd==='has_occupation') && (lbl||val) && !data.ammatti) data.ammatti=lbl||val;
-      if ((propEnd.indexOf('death_mun')>-1||propEnd.indexOf('kuolinpaikka')>-1) && lbl && !data.kuolinpaikka) data.kuolinpaikka=lbl;
-      if ((propEnd.indexOf('manner')>-1||propEnd.indexOf('kuolinsyy')>-1) && lbl && !data.kuolinsyy) data.kuolinsyy=lbl;
-      if ((propEnd.indexOf('member')>-1||propEnd.indexOf('unit')>-1||propEnd.indexOf('joukko')>-1||propEnd.indexOf('p107')>-1) && lbl) {
+      var propEnd = prop.split('/').pop().split('#').pop();
+      if (propEnd==='rank' && (lbl||val) && !data.arvo) data.arvo=lbl||val;
+      if (propEnd==='date_of_birth' && !data.syntyma) data.syntyma=val.substring(0,10);
+      if (propEnd==='date_of_death' && !data.kuolema) data.kuolema=val.substring(0,10);
+      if (propEnd==='municipality_of_domicile' && lbl && !data.kotikunta) data.kotikunta=lbl;
+      if (propEnd==='municipality_of_birth' && lbl && !data.syntymakunta) data.syntymakunta=lbl;
+      if ((propEnd==='has_occupation'||propEnd==='occupation_literal') && (lbl||val) && !data.ammatti) data.ammatti=lbl||val;
+      if (propEnd==='municipality_of_death' && lbl && !data.kuolinpaikka) data.kuolinpaikka=lbl;
+      if (propEnd==='place_of_death_literal' && val && !data.kuolinpaikka2) data.kuolinpaikka2=val;
+      if (propEnd==='perishing_category' && (lbl||val) && !data.kuolinsyy) data.kuolinsyy=lbl||val;
+      if (propEnd==='unit' && lbl) {
         if (!yksikot.some(function(u){return u.uri===val;}))
           yksikot.push({uri:val, name:lbl});
       }
@@ -250,7 +251,7 @@ function avaaHenkilo(i) {
 
     var infoHtml = '';
     if (data.syntyma) infoHtml += '<div class="info-item"><label>Syntynyt</label><span>' + data.syntyma + (data.syntymakunta?', '+data.syntymakunta:'') + '</span></div>';
-    if (data.kuolema) infoHtml += '<div class="info-item"><label>Kaatunut</label><span>' + data.kuolema + (data.kuolinpaikka?', '+data.kuolinpaikka:'') + '</span></div>';
+    if (data.kuolema) infoHtml += '<div class="info-item"><label>Kaatunut</label><span>' + data.kuolema + (data.kuolinpaikka2 ? ', ' + data.kuolinpaikka2 : (data.kuolinpaikka ? ', ' + data.kuolinpaikka : '')) + '</span></div>';
     if (data.kotikunta) infoHtml += '<div class="info-item"><label>Kotikunta</label><span>' + data.kotikunta + '</span></div>';
     if (data.ammatti) infoHtml += '<div class="info-item"><label>Ammatti</label><span>' + data.ammatti + '</span></div>';
     if (data.kuolinsyy) infoHtml += '<div class="info-item"><label>Kuolinsyy</label><span>' + data.kuolinsyy + '</span></div>';
