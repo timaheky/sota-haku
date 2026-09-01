@@ -213,6 +213,13 @@ function avaaHenkilo(i) {
     var data = { arvo:'', syntyma:'', kuolema:'', kotikunta:'', syntymakunta:'', ammatti:'', kuolinsyy:'', kuolinpaikka:'' };
     var yksikot = [];
 
+    // Debug: näytä kaikki propertyt konsolissa
+    console.log('Sotasampo palautti ' + rows.length + ' riviä:');
+    rows.forEach(function(r) {
+      var prop=r.prop?r.prop.value:'', val=r.val?r.val.value:'', lbl=r.label?r.label.value:'';
+      console.log(prop.split('/').pop() + ' = ' + (lbl||val).substring(0,60));
+    });
+
     rows.forEach(function(r) {
       var prop=r.prop?r.prop.value:'', val=r.val?r.val.value:'', lbl=r.label?r.label.value:'';
       if (prop.indexOf('rank')>-1 && lbl && !data.arvo) data.arvo=lbl;
