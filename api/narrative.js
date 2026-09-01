@@ -9,12 +9,13 @@ module.exports = async function handler(req, res) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) return res.status(500).json({ error: 'API-avain puuttuu' });
 
+  const personName = req.body.nimi || req.body.personName || person.nimi || '';
   const prompt = `Kirjoita lyhyt suomenkielinen kuvaus sotamiehen elämästä sodan aikana. 
 
 TÄRKEÄÄ: Käytä AINOASTAAN alla annettuja tietoja. Älä keksi mitään. Älä laske ikiä itse. Älä mainitse vuosilukuja tai tapahtumia joita ei ole annettu. Jos tieto puuttuu, jätä se mainitsematta.
 
 HENKILÖTIEDOT:
-Nimi: ${person.nimi || ''}
+Nimi: ${personName}
 Sotilasarvo: ${person.arvo || ''}
 Syntynyt: ${person.syntyma || ''}${person.syntymakunta ? ', ' + person.syntymakunta : ''}
 Kaatunut: ${person.kuolema || ''}${person.kuolinpaikka2 ? ', ' + person.kuolinpaikka2 : ''}${person.kuolinpaikka ? ' (' + person.kuolinpaikka + ')' : ''}
