@@ -9,21 +9,26 @@ module.exports = async function handler(req, res) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) return res.status(500).json({ error: 'API-avain puuttuu' });
 
-  const prompt = `Kirjoita lyhyt, asiallinen ja koskettava suomenkielinen kuvaus sotamiehen elämästä talvi- tai jatkosodassa. Käytä vain alla annettuja tietoja – älä keksi mitään lisää.
+  const prompt = `Kirjoita lyhyt suomenkielinen kuvaus sotamiehen elämästä sodan aikana. 
+
+TÄRKEÄÄ: Käytä AINOASTAAN alla annettuja tietoja. Älä keksi mitään. Älä laske ikiä itse. Älä mainitse vuosilukuja tai tapahtumia joita ei ole annettu. Jos tieto puuttuu, jätä se mainitsematta.
 
 HENKILÖTIEDOT:
-${JSON.stringify(person, null, 2)}
+Nimi: ${person.nimi || ''}
+Sotilasarvo: ${person.arvo || ''}
+Syntynyt: ${person.syntyma || ''}${person.syntymakunta ? ', ' + person.syntymakunta : ''}
+Kaatunut: ${person.kuolema || ''}${person.kuolinpaikka2 ? ', ' + person.kuolinpaikka2 : ''}${person.kuolinpaikka ? ' (' + person.kuolinpaikka + ')' : ''}
+Kotikunta: ${person.kotikunta || ''}
+Ammatti: ${person.ammatti || ''}
+Kuolinsyy: ${person.kuolinsyy || ''}
 
 JOUKKO-OSASTO:
 ${unit || 'Ei tiedossa'}
 
-TAISTELUTAPAHTUMAT:
-${battles && battles.length ? battles.map(b => `- ${b.name}${b.place ? ' (' + b.place + ')' : ''}${b.date ? ', ' + b.date : ''}`).join('\n') : 'Ei taistelutietoja'}
+TAISTELUTAPAHTUMAT (yksikön tiedot Sotasammosta):
+${battles && battles.length ? battles.map(b => '- ' + b.name + (b.place ? ' (' + b.place + ')' : '') + (b.date ? ', ' + b.date : '')).join('\n') : 'Ei taistelutietoja'}
 
-SOTAPÄIVÄKIRJAMERKINTÄ:
-${diary || 'Ei päiväkirjamerkintää'}
-
-Kirjoita 2-4 kappaletta. Mainitse joukko-osasto, taistelupaikat ja kohtalo jos tiedossa. Älä spekuloi asioita joita ei ole annettu.`;
+Kirjoita 2-3 kappaletta. Kerro vain annetuista faktoista. Älä spekuloi, älä laske ikiä, älä lisää tietoja joita ei ole annettu.`;
 
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
