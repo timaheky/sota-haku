@@ -8,11 +8,11 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: Georgia, "Times New Roman", serif; background: #F0E8D5; color: #1E1A14; min-height: 100vh; }
-    header { background: #1B3A28; border-bottom: 3px solid #8C7B52; padding: 18px 24px; display: flex; align-items: center; gap: 16px; }
+    body { font-family: Georgia, "Times New Roman", serif; background: #F0E8D5; color: #1E1A14; }
+    header { background: #1B3A28; border-bottom: 3px solid #8C7B52; padding: 16px 24px; display: flex; align-items: center; gap: 16px; }
     .header-title { color: #F0E8D5; font-size: 20px; letter-spacing: 2px; text-transform: uppercase; }
     .header-sub { color: #A89878; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; }
-    .back-btn { color: #A89878; background: none; border: 1px solid #8C7B52; border-radius: 3px; padding: 6px 14px; font-size: 13px; font-family: Georgia, serif; cursor: pointer; white-space: nowrap; }
+    .back-btn { color: #A89878; background: none; border: 1px solid #8C7B52; border-radius: 3px; padding: 6px 14px; font-size: 13px; font-family: Georgia, serif; cursor: pointer; }
     .back-btn:hover { background: #2C4A1C; color: #F0E8D5; }
 
     /* HAKU */
@@ -21,88 +21,71 @@
     .search-row { display: flex; gap: 8px; margin-bottom: 6px; }
     .search-row input { flex: 1; padding: 13px 16px; font-size: 16px; font-family: Georgia, serif; background: #FDF8F0; border: 1.5px solid #B8A880; border-radius: 3px; color: #1E1A14; outline: none; }
     .search-row input:focus { border-color: #1B3A28; }
-    .btn-primary { padding: 13px 24px; background: #1B3A28; color: #F0E8D5; border: none; border-radius: 3px; font-size: 14px; font-family: Georgia, serif; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; }
-    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn { padding: 13px 24px; background: #1B3A28; color: #F0E8D5; border: none; border-radius: 3px; font-size: 14px; font-family: Georgia, serif; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
     .search-hint { font-size: 12px; color: #8C7B52; font-style: italic; margin-bottom: 24px; }
-    .person-btn { display: flex; align-items: center; justify-content: space-between; width: 100%; text-align: left; padding: 12px 16px; margin-bottom: 5px; border: 1px solid #D4C8A8; border-radius: 3px; background: #FDF8F0; cursor: pointer; font-family: Georgia, serif; font-size: 15px; color: #1E1A14; transition: background 0.1s; }
-    .person-btn:hover { background: #EDE5D0; border-color: #8C7B52; }
+    .person-btn { display: flex; align-items: center; justify-content: space-between; width: 100%; text-align: left; padding: 12px 16px; margin-bottom: 5px; border: 1px solid #D4C8A8; border-radius: 3px; background: #FDF8F0; cursor: pointer; font-family: Georgia, serif; font-size: 15px; color: #1E1A14; }
+    .person-btn:hover { background: #EDE5D0; }
     .placeholder { text-align: center; padding: 48px 16px; color: #8C7B52; }
     .placeholder-icon { font-size: 40px; margin-bottom: 14px; }
     .placeholder p { font-size: 14px; line-height: 1.8; font-style: italic; }
 
     /* HENKILÖSIVU */
-    #view-person { display: none; }
-    .person-layout { display: grid; grid-template-columns: 360px 1fr; min-height: calc(100vh - 65px); }
-    @media (max-width: 800px) { .person-layout { grid-template-columns: 1fr; } }
-
-    .sidebar { background: #FDF8F0; border-right: 1px solid #D4C8A8; padding: 20px; overflow-y: auto; max-height: calc(100vh - 65px); }
-    .person-name { font-size: 22px; font-weight: bold; color: #1B3A28; margin-bottom: 3px; }
-    .person-rank { font-size: 13px; color: #5C5040; margin-bottom: 16px; }
-    .info-block { margin-bottom: 14px; }
-    .info-row { font-size: 13px; color: #5C5040; margin-bottom: 3px; }
-    .info-row strong { color: #1E1A14; }
-    .sec-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: #8C7B52; margin-bottom: 8px; display: block; margin-top: 16px; border-top: 1px solid #D4C8A8; padding-top: 14px; }
-    .unit-card { background: #F5EFE0; border: 1px solid #D4C8A8; border-radius: 3px; padding: 10px 12px; margin-bottom: 8px; }
-    .unit-name { font-size: 14px; font-weight: bold; color: #1B3A28; margin-bottom: 6px; }
-    .link-row { display: flex; gap: 6px; flex-wrap: wrap; }
-    .ext-link { font-size: 11px; color: #1B3A28; text-decoration: none; border: 1px solid #C8B88A; border-radius: 2px; padding: 3px 8px; }
-    .ext-link:hover { background: #F0E8D5; }
-
-    .battle-list { margin-top: 4px; }
-    .battle-item { display: flex; gap: 10px; padding: 7px 0; border-bottom: 1px solid #EDE5D0; cursor: pointer; }
+    #view-person { display: none; max-width: 860px; margin: 0 auto; padding: 24px 20px; }
+    .person-name { font-size: 26px; font-weight: bold; color: #1B3A28; margin-bottom: 4px; }
+    .person-rank { font-size: 14px; color: #5C5040; margin-bottom: 16px; }
+    .info-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; margin-bottom: 20px; }
+    .info-item { background: #FDF8F0; border: 1px solid #D4C8A8; border-radius: 3px; padding: 8px 12px; }
+    .info-item label { display: block; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: #8C7B52; margin-bottom: 2px; }
+    .info-item span { font-size: 14px; font-weight: bold; color: #1E1A14; }
+    .card { background: #FDF8F0; border: 1px solid #D4C8A8; border-radius: 4px; overflow: hidden; margin-bottom: 16px; }
+    .card-head { background: #1B3A28; padding: 10px 16px; display: flex; align-items: center; gap: 8px; }
+    .card-tag { font-size: 10px; letter-spacing: 1px; text-transform: uppercase; background: #8C7B52; color: #F0E8D5; padding: 2px 8px; border-radius: 2px; }
+    .card-title { font-size: 13px; font-weight: normal; letter-spacing: 1px; color: #F0E8D5; text-transform: uppercase; }
+    .card-body { padding: 14px 16px; }
+    .narrative-text { font-size: 14px; line-height: 1.9; color: #2C2416; font-style: italic; border-left: 4px solid #8C7B52; padding-left: 16px; }
+    .wiki-text { font-size: 13px; line-height: 1.7; color: #3C3426; }
+    .wiki-text a { color: #1B3A28; }
+    .battle-item { display: flex; gap: 12px; padding: 8px 0; border-bottom: 1px solid #EDE5D0; cursor: pointer; }
     .battle-item:last-child { border-bottom: none; }
-    .battle-item:hover { background: #F5EFE0; margin: 0 -4px; padding: 7px 4px; border-radius: 2px; }
-    .battle-dot { width: 8px; height: 8px; border-radius: 50%; background: #C8B88A; flex-shrink: 0; margin-top: 4px; }
-    .battle-dot.map { background: #1B3A28; }
-    .battle-name { font-size: 12px; font-weight: bold; color: #1E1A14; }
-    .battle-place { font-size: 11px; color: #5C5040; }
-    .battle-date { font-size: 11px; color: #8C7B52; }
-
-    /* Narratiivi */
-    .narrative-box { background: #F5EFE0; border-left: 4px solid #8C7B52; border-radius: 0 3px 3px 0; padding: 14px 16px; margin-top: 8px; font-size: 13px; line-height: 1.8; color: #2C2416; font-style: italic; }
-    .narrative-loading { color: #8C7B52; font-size: 13px; font-style: italic; padding: 8px 0; }
-
-    /* Wikipedia */
-    .wiki-box { background: #F0EEE8; border: 1px solid #D4C8A8; border-radius: 3px; padding: 12px; margin-top: 6px; font-size: 12px; line-height: 1.6; color: #3C3426; }
-    .wiki-box a { color: #1B3A28; font-size: 11px; }
-
-    /* Kuvat */
-    .photo-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-top: 6px; }
+    .battle-item:hover { background: #F5EFE0; margin: 0 -4px; padding: 8px 4px; border-radius: 2px; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; background: #C8B88A; flex-shrink: 0; margin-top: 4px; }
+    .dot.has-map { background: #1B3A28; }
+    .b-name { font-size: 13px; font-weight: bold; color: #1E1A14; }
+    .b-place { font-size: 12px; color: #5C5040; }
+    .b-date { font-size: 11px; color: #8C7B52; }
+    #map { width: 100%; height: 420px; border-radius: 3px; }
+    .map-legend { display: flex; gap: 16px; font-size: 12px; color: #5C5040; margin-top: 8px; }
+    .photo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
     .photo-card { border: 1px solid #D4C8A8; border-radius: 2px; overflow: hidden; text-decoration: none; display: block; }
-    .photo-card img { width: 100%; height: 90px; object-fit: cover; display: block; filter: sepia(20%); }
-    .photo-card-title { font-size: 10px; padding: 4px 6px; color: #5C5040; line-height: 1.2; }
-
-    /* Sotapolku */
-    .sotapolku-btn { display: block; text-align: center; padding: 10px; background: #2C4A1C; color: #F0E8D5; text-decoration: none; border-radius: 3px; font-size: 13px; font-family: Georgia, serif; margin-top: 12px; }
+    .photo-card img { width: 100%; height: 110px; object-fit: cover; display: block; filter: sepia(20%); }
+    .photo-title { font-size: 10px; padding: 4px 6px; color: #5C5040; line-height: 1.2; }
+    .link-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+    .ext-link { font-size: 13px; color: #1B3A28; text-decoration: none; border: 1px solid #8C7B52; border-radius: 3px; padding: 7px 14px; }
+    .ext-link:hover { background: #F0E8D5; }
+    .sotapolku-btn { display: inline-block; padding: 10px 20px; background: #2C4A1C; color: #F0E8D5; text-decoration: none; border-radius: 3px; font-size: 13px; font-family: Georgia, serif; }
     .sotapolku-btn:hover { background: #1B3A28; }
-
-    /* Kartta */
-    .map-area { display: flex; flex-direction: column; }
-    #map { flex: 1; min-height: 500px; }
-    .map-bar { padding: 10px 16px; background: #1B3A28; color: #A89878; font-size: 12px; display: flex; gap: 20px; }
-
-    .empty { font-size: 13px; color: #8C7B52; font-style: italic; padding: 6px 0; }
-    .loading { font-size: 13px; color: #8C7B52; padding: 6px 0; }
+    .empty { font-size: 13px; color: #8C7B52; font-style: italic; }
+    .loading { font-size: 13px; color: #8C7B52; }
     .hidden { display: none; }
   </style>
 </head>
 <body>
 <header>
-  <button class="back-btn hidden" id="backBtn" onclick="naytaHaku()">← Takaisin hakuun</button>
+  <button class="back-btn hidden" id="backBtn" onclick="naytaHaku()">← Takaisin</button>
   <div>
     <div class="header-title">Sota-arkistohaku</div>
     <div class="header-sub">Talvi- ja jatkosodan henkilöhistoria</div>
   </div>
 </header>
 
-<!-- HAKU -->
 <div id="view-search">
   <label class="search-label">Henkilön nimi</label>
   <div class="search-row">
-    <input type="text" id="searchInput" placeholder="esim. Korhonen tai Mäkinen Eino" />
-    <button class="btn-primary" id="searchBtn" onclick="doSearch()">Hae</button>
+    <input type="text" id="searchInput" placeholder="esim. Maaranen tai Korhonen Aarne" />
+    <button class="btn" id="searchBtn" onclick="doSearch()">Hae</button>
   </div>
-  <p class="search-hint">Kirjoita sukunimi ensin – esim. "Maaranen" tai "Korhonen Aarne"</p>
+  <p class="search-hint">Kirjoita sukunimi ensin</p>
   <div id="searchResults">
     <div class="placeholder">
       <div class="placeholder-icon">🏛️</div>
@@ -111,18 +94,34 @@
   </div>
 </div>
 
-<!-- HENKILÖSIVU -->
 <div id="view-person">
-  <div class="person-layout">
-    <div class="sidebar" id="sidebar"><p class="loading">Ladataan...</p></div>
-    <div class="map-area">
-      <div class="map-bar">
-        <span>🟢 Taistelupaikka kartalla</span>
-        <span>⚪ Ei koordinaatteja</span>
-        <span id="mapInfo"></span>
-      </div>
-      <div id="map"></div>
+  <p class="person-name" id="p-name">–</p>
+  <p class="person-rank" id="p-rank"></p>
+  <div class="info-grid" id="p-info"></div>
+  <div class="link-row" id="p-links" style="margin-bottom:20px"></div>
+
+  <div class="card" id="card-narrative">
+    <div class="card-head"><span class="card-tag">Claude AI</span><span class="card-title">Yhteenveto</span></div>
+    <div class="card-body"><p class="loading" id="narrative-text">⏳ Kirjoitetaan yhteenvetoa...</p></div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><span class="card-tag">Sotasampo</span><span class="card-title">Taistelutapahtumat</span></div>
+    <div class="card-body">
+      <div id="battle-list"><p class="loading">Ladataan...</p></div>
+      <div id="map" style="margin-top:14px"></div>
+      <div class="map-legend"><span>🟢 Taistelupaikka kartalla</span><span>⚪ Ei koordinaatteja</span></div>
     </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><span class="card-tag">Wikipedia</span><span class="card-title">Yksikön historia</span></div>
+    <div class="card-body"><p class="loading" id="wiki-text">Ladataan...</p></div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><span class="card-tag">SA-kuva</span><span class="card-title">Valokuvat</span></div>
+    <div class="card-body"><div id="photo-grid"><p class="loading">Ladataan...</p></div></div>
   </div>
 </div>
 
@@ -148,12 +147,17 @@ function naytaHenkilo() {
   document.getElementById('view-search').style.display = 'none';
   document.getElementById('view-person').style.display = '';
   document.getElementById('backBtn').classList.remove('hidden');
-  if (!kartta) {
-    kartta = L.map('map').setView([61.5, 30.0], 7);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(kartta);
-  }
-  merkit.forEach(function(m) { kartta.removeLayer(m); });
-  merkit = [];
+  // Alusta kartta viiveellä jotta DOM on valmis
+  setTimeout(function() {
+    if (!kartta) {
+      kartta = L.map('map').setView([61.5, 30.0], 7);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(kartta);
+    } else {
+      kartta.invalidateSize();
+    }
+    merkit.forEach(function(m) { kartta.removeLayer(m); });
+    merkit = [];
+  }, 200);
 }
 
 function doSearch() {
@@ -187,8 +191,15 @@ function doSearch() {
 function avaaHenkilo(i) {
   var p = persons[i];
   naytaHenkilo();
-  document.getElementById('sidebar').innerHTML = '<p class="loading">Haetaan tietoja Sotasammosta...</p>';
-  document.getElementById('mapInfo').textContent = '';
+
+  document.getElementById('p-name').textContent = p.name;
+  document.getElementById('p-rank').textContent = '';
+  document.getElementById('p-info').innerHTML = '';
+  document.getElementById('p-links').innerHTML = '';
+  document.getElementById('narrative-text').textContent = '⏳ Kirjoitetaan yhteenvetoa...';
+  document.getElementById('battle-list').innerHTML = '<p class="loading">Ladataan taistelutietoja...</p>';
+  document.getElementById('wiki-text').textContent = 'Ladataan...';
+  document.getElementById('photo-grid').innerHTML = '<p class="loading">Ladataan...</p>';
 
   var q = 'PREFIX skos: <http://www.w3.org/2004/02/skos/core#>\n' +
     'SELECT DISTINCT ?prop ?val ?label WHERE {\n' +
@@ -199,75 +210,57 @@ function avaaHenkilo(i) {
     '} LIMIT 200';
 
   sparql(q, function(err, rows) {
-    var arvo='', syntyma='', kuolema='', kotikunta='', syntymakunta='', ammatti='', kuolinsyy='', kuolinpaikka='';
+    var data = { arvo:'', syntyma:'', kuolema:'', kotikunta:'', syntymakunta:'', ammatti:'', kuolinsyy:'', kuolinpaikka:'' };
     var yksikot = [];
 
     rows.forEach(function(r) {
       var prop=r.prop?r.prop.value:'', val=r.val?r.val.value:'', lbl=r.label?r.label.value:'';
-      if (prop.indexOf('rank')>-1 && lbl && !arvo) arvo=lbl;
-      if (prop.indexOf('birth_date')>-1 && !syntyma) { var m=val.match(/\d{4}-\d{2}-\d{2}|\d{4}/); if(m) syntyma=m[0]; }
-      if ((prop.indexOf('death_date')>-1||prop.indexOf('kuolin')>-1) && !kuolema) { var m2=val.match(/\d{4}-\d{2}-\d{2}|\d{4}/); if(m2) kuolema=m2[0]; }
-      if (prop.indexOf('home_municipality')>-1 && lbl && !kotikunta) kotikunta=lbl;
-      if (prop.indexOf('birth_municipality')>-1 && lbl && !syntymakunta) syntymakunta=lbl;
-      if (prop.indexOf('occupation')>-1 && lbl && !ammatti) ammatti=lbl;
-      if (prop.indexOf('death_municipality')>-1 && lbl && !kuolinpaikka) kuolinpaikka=lbl;
-      if (prop.indexOf('manner_of_death')>-1 && lbl && !kuolinsyy) kuolinsyy=lbl;
+      if (prop.indexOf('rank')>-1 && lbl && !data.arvo) data.arvo=lbl;
+      if (prop.indexOf('birth_date')>-1 && !data.syntyma) { var m=val.match(/\d{4}-\d{2}-\d{2}|\d{4}/); if(m) data.syntyma=m[0]; }
+      if (prop.indexOf('death_date')>-1 && !data.kuolema) { var m2=val.match(/\d{4}-\d{2}-\d{2}|\d{4}/); if(m2) data.kuolema=m2[0]; }
+      if (prop.indexOf('home_municipality')>-1 && lbl && !data.kotikunta) data.kotikunta=lbl;
+      if (prop.indexOf('birth_municipality')>-1 && lbl && !data.syntymakunta) data.syntymakunta=lbl;
+      if (prop.indexOf('occupation')>-1 && lbl && !data.ammatti) data.ammatti=lbl;
+      if (prop.indexOf('death_municipality')>-1 && lbl && !data.kuolinpaikka) data.kuolinpaikka=lbl;
+      if (prop.indexOf('manner_of_death')>-1 && lbl && !data.kuolinsyy) data.kuolinsyy=lbl;
       if ((prop.indexOf('member')>-1||prop.indexOf('unit')>-1) && lbl) {
         if (!yksikot.some(function(u){return u.uri===val;}))
           yksikot.push({uri:val, name:lbl});
       }
     });
 
-    var personData = { nimi:p.name, arvo:arvo, syntyma:syntyma, kuolema:kuolema, kotikunta:kotikunta, syntymakunta:syntymakunta, ammatti:ammatti, kuolinsyy:kuolinsyy, kuolinpaikka:kuolinpaikka };
+    // Täytä tiedot
+    if (data.arvo) document.getElementById('p-rank').textContent = data.arvo;
 
-    var html = '<p class="person-name">' + p.name + '</p>';
-    if (arvo) html += '<p class="person-rank">' + arvo + '</p>';
-    html += '<div class="info-block">';
-    if (syntyma) html += '<p class="info-row">Syntynyt: <strong>' + syntyma + (syntymakunta ? ', ' + syntymakunta : '') + '</strong></p>';
-    if (kuolema) html += '<p class="info-row">Kaatunut: <strong>' + kuolema + (kuolinpaikka ? ', ' + kuolinpaikka : '') + '</strong></p>';
-    if (kuolinsyy) html += '<p class="info-row">Kuolinsyy: <strong>' + kuolinsyy + '</strong></p>';
-    if (kotikunta) html += '<p class="info-row">Kotikunta: <strong>' + kotikunta + '</strong></p>';
-    if (ammatti) html += '<p class="info-row">Ammatti: <strong>' + ammatti + '</strong></p>';
-    html += '</div>';
+    var infoHtml = '';
+    if (data.syntyma) infoHtml += '<div class="info-item"><label>Syntynyt</label><span>' + data.syntyma + (data.syntymakunta?', '+data.syntymakunta:'') + '</span></div>';
+    if (data.kuolema) infoHtml += '<div class="info-item"><label>Kaatunut</label><span>' + data.kuolema + (data.kuolinpaikka?', '+data.kuolinpaikka:'') + '</span></div>';
+    if (data.kotikunta) infoHtml += '<div class="info-item"><label>Kotikunta</label><span>' + data.kotikunta + '</span></div>';
+    if (data.ammatti) infoHtml += '<div class="info-item"><label>Ammatti</label><span>' + data.ammatti + '</span></div>';
+    if (data.kuolinsyy) infoHtml += '<div class="info-item"><label>Kuolinsyy</label><span>' + data.kuolinsyy + '</span></div>';
+    if (yksikot.length) infoHtml += '<div class="info-item"><label>Joukko-osasto</label><span>' + yksikot[0].name + '</span></div>';
+    document.getElementById('p-info').innerHTML = infoHtml;
 
-    html += '<span class="sec-label">Linkit</span>';
-    html += '<div class="link-row">';
-    html += '<a href="https://www.sotasampo.fi/fi/persons/?uri=' + encodeURIComponent(p.uri) + '" target="_blank" class="ext-link">Sotasampo ↗</a>';
-    html += '<a href="https://sotapolku.fi/henkilot/" target="_blank" class="ext-link">Sotapolku.fi ↗</a>';
-    html += '</div>';
+    var linksHtml = '<a href="https://www.sotasampo.fi/fi/persons/?uri=' + encodeURIComponent(p.uri) + '" target="_blank" class="ext-link">Sotasampo ↗</a>';
+    linksHtml += '<a href="https://sotapolku.fi/henkilot/" target="_blank" class="sotapolku-btn">Avaa Sotapolku.fi ↗</a>';
+    document.getElementById('p-links').innerHTML = linksHtml;
+
+    var unitName = yksikot.length ? yksikot[0].name : '';
 
     if (yksikot.length) {
-      html += '<span class="sec-label">Joukko-osasto</span>';
-      yksikot.forEach(function(u) {
-        html += '<div class="unit-card"><div class="unit-name">' + u.name + '</div>';
-        html += '<div class="link-row"><a href="https://www.sotasampo.fi/fi/units/?uri=' + encodeURIComponent(u.uri) + '" target="_blank" class="ext-link">Sotasampo ↗</a></div></div>';
-      });
-    }
-
-    html += '<span class="sec-label">Taistelutapahtumat</span>';
-    html += '<div id="battles-container"><p class="loading">Haetaan taistelutietoja...</p></div>';
-    html += '<span class="sec-label">Kuvaukset</span>';
-    html += '<div id="narrative-container"><p class="narrative-loading">Haetaan Wikipedia-tietoja...</p></div>';
-    html += '<span class="sec-label">Valokuvat (SA-kuva)</span>';
-    html += '<div id="photos-container"><p class="loading">Ladataan...</p></div>';
-    html += '<a href="https://sotapolku.fi/henkilot/" target="_blank" class="sotapolku-btn">Avaa Sotapolku.fi ↗</a>';
-
-    document.getElementById('sidebar').innerHTML = html;
-
-    // Hae rinnakkain
-    if (yksikot.length) {
-      haeTaistelut(yksikot[0].uri, yksikot[0].name, personData);
-      haeWikipedia(yksikot[0].name, personData);
-      haeKuvat(yksikot[0].name);
+      haeTaistelut(yksikot[0].uri, unitName, data, p.name);
+      haeWikipedia(unitName);
+      haeKuvat(unitName);
     } else {
-      document.getElementById('battles-container').innerHTML = '<p class="empty">Ei yksikkötietoa.</p>';
-      document.getElementById('narrative-container').innerHTML = '<p class="empty">Ei yksikkötietoa narratiivia varten.</p>';
+      document.getElementById('battle-list').innerHTML = '<p class="empty">Ei yksikkötietoa Sotasammossa.</p>';
+      document.getElementById('wiki-text').textContent = 'Ei yksikkötietoa.';
+      haeNarratiivi(data, '', [], p.name);
       haeKuvat(p.name);
     }
   });
 }
 
-function haeTaistelut(unitUri, unitName, personData) {
+function haeTaistelut(unitUri, unitName, personData, personName) {
   var q = 'PREFIX skos: <http://www.w3.org/2004/02/skos/core#>\n' +
     'PREFIX crm: <http://www.cidoc-crm.org/cidoc-crm/>\n' +
     'PREFIX wgs: <http://www.w3.org/2003/01/geo/wgs84_pos#>\n' +
@@ -282,114 +275,112 @@ function haeTaistelut(unitUri, unitName, personData) {
     '} ORDER BY ?start LIMIT 60';
 
   sparql(q, function(err, rows) {
-    var bc = document.getElementById('battles-container');
+    var bl = document.getElementById('battle-list');
     if (!rows.length) {
-      bc.innerHTML = '<p class="empty">Ei taistelutietoja Sotasammossa.</p>';
+      bl.innerHTML = '<p class="empty">Ei taistelutietoja Sotasammossa tälle yksikölle.</p>';
+      haeNarratiivi(personData, unitName, [], personName);
       return;
     }
 
-    var bounds = [];
     var battleData = [];
-    var html = '<div class="battle-list">';
+    var bounds = [];
+    var html = '';
+
+    // Lisää karttamerkit viiveellä
+    setTimeout(function() {
+      rows.forEach(function(r) {
+        var lat = r.lat ? parseFloat(r.lat.value) : null;
+        var lon = r.lon ? parseFloat(r.lon.value) : null;
+        var ename = r.ename ? r.ename.value : '';
+        var pname = r.pname ? r.pname.value : '';
+        var start = r.start ? r.start.value.substring(0,10) : '';
+        if (lat && lon && !isNaN(lat) && !isNaN(lon) && kartta) {
+          var m = L.circleMarker([lat,lon], {
+            radius:8, fillColor:'#1B3A28', color:'#8C7B52', weight:2, fillOpacity:0.85
+          }).addTo(kartta).bindPopup('<strong>'+ename+'</strong>'+(pname?'<br>'+pname:'')+(start?'<br>'+start:''));
+          merkit.push(m);
+          bounds.push([lat,lon]);
+        }
+      });
+      if (bounds.length > 1) kartta.fitBounds(bounds, {padding:[40,40]});
+      else if (bounds.length===1) kartta.setView(bounds[0], 10);
+    }, 400);
 
     rows.forEach(function(r) {
+      var lat = r.lat ? parseFloat(r.lat.value) : null;
+      var lon = r.lon ? parseFloat(r.lon.value) : null;
       var ename = r.ename ? r.ename.value : '';
       var pname = r.pname ? r.pname.value : '';
-      var lat   = r.lat  ? parseFloat(r.lat.value)  : null;
-      var lon   = r.lon  ? parseFloat(r.lon.value)  : null;
       var start = r.start ? r.start.value.substring(0,10) : '';
       var hasCoords = lat && lon && !isNaN(lat) && !isNaN(lon);
-
       battleData.push({name:ename, place:pname, date:start});
 
-      if (hasCoords) {
-        var m = L.circleMarker([lat,lon], {
-          radius:8, fillColor:'#1B3A28', color:'#8C7B52', weight:2, fillOpacity:0.85
-        }).addTo(kartta).bindPopup('<strong>'+ename+'</strong>'+(pname?'<br>'+pname:'')+(start?'<br>'+start:''));
-        merkit.push(m);
-        bounds.push([lat,lon]);
-      }
-
-      html += '<div class="battle-item"' + (hasCoords?(' onclick="kartta.setView(['+lat+','+lon+'],11)"'):'') + '>';
-      html += '<div class="battle-dot' + (hasCoords?' map':'') + '"></div>';
-      html += '<div><div class="battle-name">' + ename + '</div>';
-      if (pname) html += '<div class="battle-place">' + pname + '</div>';
-      if (start) html += '<div class="battle-date">' + start + '</div>';
+      html += '<div class="battle-item"' + (hasCoords ? ' onclick="kartta&&kartta.setView(['+lat+','+lon+'],11)"' : '') + '>';
+      html += '<div class="dot' + (hasCoords?' has-map':'') + '"></div>';
+      html += '<div><div class="b-name">' + ename + '</div>';
+      if (pname) html += '<div class="b-place">' + pname + '</div>';
+      if (start) html += '<div class="b-date">' + start + '</div>';
       html += '</div></div>';
     });
 
-    html += '</div>';
-    bc.innerHTML = html;
-
-    if (bounds.length > 1) kartta.fitBounds(bounds, {padding:[40,40]});
-    else if (bounds.length===1) kartta.setView(bounds[0], 10);
-    document.getElementById('mapInfo').textContent = bounds.length + ' paikkaa kartalla';
-
-    // Tallenna taistelut narratiivia varten
-    window._battleData = battleData;
-    haeNarratiivi(personData, unitName, battleData, '');
+    bl.innerHTML = html;
+    haeNarratiivi(personData, unitName, battleData, personName);
   });
 }
 
-function haeWikipedia(unitName, personData) {
-  fetch('/api/wikipedia?yksikko=' + encodeURIComponent(unitName))
-    .then(function(r) { return r.json(); })
-    .then(function(d) {
-      var nc = document.getElementById('narrative-container');
-      if (!nc) return;
-      var wikiHtml = '';
-      if (d.teksti) {
-        wikiHtml = '<p class="sec-label" style="border-top:none;margin-top:8px">Wikipedia – ' + (d.otsikko||unitName) + '</p>';
-        wikiHtml += '<div class="wiki-box">' + d.teksti.substring(0,800) + '...<br><a href="https://fi.wikipedia.org/wiki/' + encodeURIComponent(d.otsikko||unitName) + '" target="_blank">Lue lisää Wikipediassa ↗</a></div>';
-      }
-      // Lisää Wikipedia-tieto narrative-containerin perään
-      nc.innerHTML = (nc.innerHTML || '') + wikiHtml;
-    }).catch(function() {});
-}
-
-function haeNarratiivi(personData, unitName, battles, diary) {
-  var nc = document.getElementById('narrative-container');
-  if (nc) nc.innerHTML = '<p class="narrative-loading">⏳ Claude kirjoittaa yhteenvetoa...</p>';
-
+function haeNarratiivi(personData, unitName, battles, personName) {
   fetch('/api/narrative', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ person: personData, unit: unitName, battles: battles, diary: diary })
+    body: JSON.stringify({ person: personData, unit: unitName, battles: battles, personName: personName })
   })
   .then(function(r) { return r.json(); })
   .then(function(d) {
-    var nc2 = document.getElementById('narrative-container');
-    if (!nc2) return;
-    if (d.narrative) {
-      nc2.innerHTML = '<div class="narrative-box">' + d.narrative.replace(/\n/g,'<br>') + '</div>';
-    } else {
-      nc2.innerHTML = '<p class="empty">Narratiivia ei saatu.</p>';
+    var el = document.getElementById('narrative-text');
+    if (el && d.narrative) {
+      el.outerHTML = '<div class="narrative-text">' + d.narrative.replace(/\n\n/g,'</p><p style="margin-top:10px">').replace(/\n/g,'<br>') + '</div>';
     }
-    // Lisää Wikipedia tämän jälkeen
-    haeWikipedia(unitName, personData);
   })
-  .catch(function(e) {
-    var nc3 = document.getElementById('narrative-container');
-    if (nc3) nc3.innerHTML = '<p class="empty">Narratiivin haku epäonnistui: ' + e.message + '</p>';
+  .catch(function() {
+    var el = document.getElementById('narrative-text');
+    if (el) el.textContent = 'Narratiivin haku epäonnistui.';
   });
+}
+
+function haeWikipedia(unitName) {
+  fetch('/api/wikipedia?yksikko=' + encodeURIComponent(unitName))
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      var el = document.getElementById('wiki-text');
+      if (!el) return;
+      if (d.teksti) {
+        el.outerHTML = '<div class="wiki-text">' + d.teksti.substring(0,1000) +
+          '... <a href="https://fi.wikipedia.org/wiki/' + encodeURIComponent(d.otsikko||unitName) + '" target="_blank">Lue lisää ↗</a></div>';
+      } else {
+        el.textContent = 'Ei Wikipedia-artikkelia tälle yksikölle.';
+      }
+    }).catch(function() {
+      var el = document.getElementById('wiki-text');
+      if (el) el.textContent = 'Wikipedia-haun virhe.';
+    });
 }
 
 function haeKuvat(hakusana) {
   fetch('https://api.finna.fi/v1/search?lookfor=' + encodeURIComponent(hakusana) + '&limit=6&filter%5B%5D=building%3A0%2Fsa-kuva%2F')
     .then(function(r) { return r.json(); })
     .then(function(d) {
-      var el = document.getElementById('photos-container');
+      var el = document.getElementById('photo-grid');
       if (!el) return;
       var records = d.records || [];
       if (!records.length) { el.innerHTML = '<p class="empty">Ei SA-kuvia.</p>'; return; }
       el.innerHTML = '<div class="photo-grid">' + records.slice(0,6).map(function(r) {
         var src = r.images&&r.images[0] ? 'https://www.finna.fi'+r.images[0] : null;
-        var img = src ? '<img src="'+src+'" alt="" loading="lazy" onerror="this.parentNode.style.display=\'none\'">'
-                     : '<div style="height:90px;background:#E8E0CC;display:flex;align-items:center;justify-content:center;font-size:24px">📷</div>';
-        return '<a href="https://www.finna.fi/Record/'+encodeURIComponent(r.id)+'" target="_blank" class="photo-card">'+img+'<div class="photo-card-title">'+(r.title||'').substring(0,50)+'</div></a>';
+        var img = src ? '<img src="'+src+'" alt="" loading="lazy" onerror="this.style.display=\'none\'">'
+                     : '<div style="height:110px;background:#E8E0CC;display:flex;align-items:center;justify-content:center">📷</div>';
+        return '<a href="https://www.finna.fi/Record/'+encodeURIComponent(r.id)+'" target="_blank" class="photo-card">'+img+'<div class="photo-title">'+(r.title||'').substring(0,50)+'</div></a>';
       }).join('') + '</div>';
     }).catch(function() {
-      var el = document.getElementById('photos-container');
+      var el = document.getElementById('photo-grid');
       if (el) el.innerHTML = '<p class="empty">Kuvahaun virhe.</p>';
     });
 }
