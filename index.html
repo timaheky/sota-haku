@@ -145,7 +145,7 @@ function naytaHaku() {
 
 function naytaHenkilo() {
   document.getElementById('view-search').style.display = 'none';
-  document.getElementById('view-person').style.display = '';
+  document.getElementById('view-person').style.cssText = 'display:block;padding:20px;max-width:860px;margin:0 auto';
   document.getElementById('backBtn').classList.remove('hidden');
   // Alusta kartta viiveellä jotta DOM on valmis
   setTimeout(function() {
