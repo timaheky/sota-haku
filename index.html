@@ -263,6 +263,7 @@ function avaaHenkilo(i) {
     document.getElementById('p-links').innerHTML = linksHtml;
 
     var unitName = yksikot.length ? yksikot[0].name : '';
+    data.nimi = p.name; // lisätään nimi dataan
 
     if (yksikot.length) {
       haeTaistelut(yksikot[0].uri, unitName, data, p.name);
