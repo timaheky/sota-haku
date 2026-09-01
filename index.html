@@ -347,10 +347,10 @@ function haeTaistelut(unitUri, unitName, personData, personName) {
 }
 
 function haeNarratiivi(personData, unitName, battles, personName) {
-  fetch('/api/narrative', {
+  fetch('/api/narrative?_t=' + Date.now(), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ person: personData, unit: unitName, battles: battles, personName: personName })
+    body: JSON.stringify({ person: personData, unit: unitName, battles: battles, personName: personName, nimi: personName })
   })
   .then(function(r) { return r.json(); })
   .then(function(d) {
