@@ -409,8 +409,9 @@ function haeNarratiivi(personData, unitName, battles, requestId) {
     if (requestId !== currentRequestId) return;
     var el = document.getElementById('narrative-body');
     if (d.narrative) {
+      var teksti = d.narrative.replace(/^#+[^\n]*\n?/gm, '').trim();
       el.className = 'narrative-text';
-      el.innerHTML = '<p>' + d.narrative.replace(/\n\n/g, '</p><p style="margin-top:10px">').replace(/\n/g, '<br>') + '</p>';
+      el.innerHTML = '<p>' + teksti.replace(/\n\n/g, '</p><p style="margin-top:10px">').replace(/\n/g, '<br>') + '</p>';
     } else {
       el.className = 'empty';
       el.textContent = 'Yhteenvetoa ei saatu muodostettua.';
@@ -426,7 +427,8 @@ function haeNarratiivi(personData, unitName, battles, requestId) {
 
 /* ---------- SA-kuvat (Finna) ---------- */
 function haeKuvat(hakusana, requestId) {
-  fetch('https://api.finna.fi/v1/search?lookfor=' + encodeURIComponent(hakusana) + '&limit=6&filter%5B%5D=building%3A0%2Fsa-kuva%2F')
+  var termi = hakusana.split(',')[0].trim(); // esim. "Jalkaväkirykmentti 37, I pataljoona, 1. komppania" -> "Jalkaväkirykmentti 37"
+  fetch('https://api.finna.fi/v1/search?lookfor=' + encodeURIComponent(termi) + '&limit=6&filter%5B%5D=building%3A0%2FSA-kuva%2F')
     .then(function(r) { return r.json(); })
     .then(function(d) {
       if (requestId !== currentRequestId) return;
