@@ -33,7 +33,8 @@
     /* HENKILÖSIVU */
     #view-person { display: none; max-width: 860px; margin: 0 auto; padding: 24px 20px; }
     .person-name { font-size: 26px; font-weight: bold; color: #1B3A28; margin-bottom: 4px; }
-    .person-rank { font-size: 14px; color: #5C5040; margin-bottom: 16px; }
+    .person-rank { font-size: 14px; color: #5C5040; margin-bottom: 8px; }
+    .person-unit { display: inline-block; font-size: 14px; font-weight: bold; color: #1B3A28; background: #DCD2AE; padding: 5px 14px; border-radius: 3px; margin-bottom: 16px; }
     .info-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; margin-bottom: 20px; }
     .info-item { background: #FDF8F0; border: 1px solid #D4C8A8; border-radius: 3px; padding: 8px 12px; }
     .info-item label { display: block; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: #8C7B52; margin-bottom: 2px; }
@@ -44,8 +45,6 @@
     .card-title { font-size: 13px; font-weight: normal; letter-spacing: 1px; color: #F0E8D5; text-transform: uppercase; }
     .card-body { padding: 14px 16px; }
     .narrative-text { font-size: 14px; line-height: 1.9; color: #2C2416; font-style: italic; border-left: 4px solid #8C7B52; padding-left: 16px; }
-    .wiki-text { font-size: 13px; line-height: 1.7; color: #3C3426; }
-    .wiki-text a { color: #1B3A28; }
     .battle-item { display: flex; gap: 12px; padding: 8px 0; border-bottom: 1px solid #EDE5D0; cursor: pointer; }
     .battle-item:last-child { border-bottom: none; }
     .battle-item:hover { background: #F5EFE0; margin: 0 -4px; padding: 8px 4px; border-radius: 2px; }
@@ -60,7 +59,7 @@
     .photo-card { border: 1px solid #D4C8A8; border-radius: 2px; overflow: hidden; text-decoration: none; display: block; }
     .photo-card img { width: 100%; height: 110px; object-fit: cover; display: block; filter: sepia(20%); }
     .photo-title { font-size: 10px; padding: 4px 6px; color: #5C5040; line-height: 1.2; }
-    .link-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+    .link-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; margin-bottom: 20px; }
     .ext-link { font-size: 13px; color: #1B3A28; text-decoration: none; border: 1px solid #8C7B52; border-radius: 3px; padding: 7px 14px; }
     .ext-link:hover { background: #F0E8D5; }
     .sotapolku-btn { display: inline-block; padding: 10px 20px; background: #2C4A1C; color: #F0E8D5; text-decoration: none; border-radius: 3px; font-size: 13px; font-family: Georgia, serif; }
@@ -82,10 +81,10 @@
 <div id="view-search">
   <label class="search-label">Henkilön nimi</label>
   <div class="search-row">
-    <input type="text" id="searchInput" placeholder="esim. Maaranen tai Korhonen Aarne" />
+    <input type="text" id="searchInput" placeholder="esim. Korhonen tai Korhonen Aarne" />
     <button class="btn" id="searchBtn" onclick="doSearch()">Hae</button>
   </div>
-  <p class="search-hint">Kirjoita sukunimi ensin</p>
+  <p class="search-hint">Hakutulokset rajataan sotaan kaatuneisiin, joilla on kunnolliset tiedot Sotasammossa.</p>
   <div id="searchResults">
     <div class="placeholder">
       <div class="placeholder-icon">🏛️</div>
@@ -97,12 +96,13 @@
 <div id="view-person">
   <p class="person-name" id="p-name">–</p>
   <p class="person-rank" id="p-rank"></p>
+  <p class="person-unit hidden" id="p-unit"></p>
   <div class="info-grid" id="p-info"></div>
-  <div class="link-row" id="p-links" style="margin-bottom:20px"></div>
+  <div class="link-row" id="p-links"></div>
 
   <div class="card" id="card-narrative">
     <div class="card-head"><span class="card-tag">Claude AI</span><span class="card-title">Yhteenveto</span></div>
-    <div class="card-body"><p class="loading" id="narrative-text">⏳ Kirjoitetaan yhteenvetoa...</p></div>
+    <div class="card-body"><div class="loading" id="narrative-body">⏳ Kirjoitetaan yhteenvetoa...</div></div>
   </div>
 
   <div class="card">
@@ -115,40 +115,38 @@
   </div>
 
   <div class="card">
-    <div class="card-head"><span class="card-tag">Wikipedia</span><span class="card-title">Yksikön historia</span></div>
-    <div class="card-body"><p class="loading" id="wiki-text">Ladataan...</p></div>
-  </div>
-
-  <div class="card">
     <div class="card-head"><span class="card-tag">SA-kuva</span><span class="card-title">Valokuvat</span></div>
     <div class="card-body"><div id="photo-grid"><p class="loading">Ladataan...</p></div></div>
   </div>
 </div>
 
 <script>
+/* ---------- Tila ---------- */
 var persons = [];
+var currentRequestId = 0; // kasvatetaan joka haussa/henkilön avauksessa; estää vanhentuneita vastauksia päivittämästä DOMia
 var kartta = null;
-var merkit = [];
-var currentRequestId = 0; // estää vanhat vastaukset ylikirjoittamasta uutta
+var karttamerkit = [];
 
-function sparql(q, cb) {
-  fetch('/api/sparql?_t=' + Date.now() + '&query=' + encodeURIComponent(q), { cache: 'no-store' })
+/* ---------- Sotasampo SPARQL ---------- */
+function sparqlQuery(query) {
+  return fetch('/api/sparql?_t=' + Date.now() + '&query=' + encodeURIComponent(query), { cache: 'no-store' })
     .then(function(r) { return r.json(); })
-    .then(function(d) { cb(null, d.results && d.results.bindings ? d.results.bindings : []); })
-    .catch(function(e) { cb(e.message, []); });
+    .then(function(d) { return (d.results && d.results.bindings) || []; });
 }
 
+/* ---------- Näkymän vaihto ---------- */
 function naytaHaku() {
   document.getElementById('view-search').style.display = '';
   document.getElementById('view-person').style.display = 'none';
   document.getElementById('backBtn').classList.add('hidden');
+  currentRequestId++; // mitätöi henkilösivun kesken jääneet haut
 }
 
 function naytaHenkilo() {
   document.getElementById('view-search').style.display = 'none';
-  document.getElementById('view-person').style.cssText = 'display:block;padding:20px;max-width:860px;margin:0 auto';
+  document.getElementById('view-person').style.display = 'block';
   document.getElementById('backBtn').classList.remove('hidden');
-  // Alusta kartta viiveellä jotta DOM on valmis
+
   setTimeout(function() {
     if (!kartta) {
       kartta = L.map('map').setView([61.5, 30.0], 7);
@@ -156,142 +154,174 @@ function naytaHenkilo() {
     } else {
       kartta.invalidateSize();
     }
-    merkit.forEach(function(m) { kartta.removeLayer(m); });
-    merkit = [];
+    karttamerkit.forEach(function(m) { kartta.removeLayer(m); });
+    karttamerkit = [];
   }, 200);
 }
 
+/* ---------- Haku ---------- */
 function doSearch() {
   var term = document.getElementById('searchInput').value.trim();
   if (!term) return;
+
+  currentRequestId++;
+  var requestId = currentRequestId;
+
   var btn = document.getElementById('searchBtn');
   btn.disabled = true; btn.textContent = 'Haetaan...';
-  persons = [];
 
   var q = 'PREFIX skos: <http://www.w3.org/2004/02/skos/core#>\n' +
+    'PREFIX crm: <http://www.cidoc-crm.org/cidoc-crm/>\n' +
     'SELECT DISTINCT ?person ?name WHERE {\n' +
     '  ?person skos:prefLabel ?name .\n' +
-    '  FILTER(CONTAINS(LCASE(str(?name)), LCASE("' + term.replace(/"/g,'\\"') + '")))\n' +
+    '  ?person crm:P70i_is_documented_in ?doc .\n' +
+    '  ?doc a <http://ldf.fi/schema/warsa/DeathRecord> .\n' +
+    '  FILTER(CONTAINS(LCASE(str(?name)), LCASE("' + term.replace(/"/g, '\\"') + '")))\n' +
     '}\nORDER BY ?name\nLIMIT 30';
 
-  sparql(q, function(err, rows) {
+  sparqlQuery(q).then(function(rows) {
+    if (requestId !== currentRequestId) return;
     btn.disabled = false; btn.textContent = 'Hae';
+
     var el = document.getElementById('searchResults');
     if (!rows.length) {
+      persons = [];
       el.innerHTML = '<p class="empty">Ei tuloksia nimellä "' + term + '".</p>';
       return;
     }
+
     persons = rows.map(function(r) { return { uri: r.person.value, name: r.name.value }; });
     el.innerHTML = persons.map(function(p, i) {
       return '<button class="person-btn" onclick="avaaHenkilo(' + i + ')">' +
         '<span>' + p.name + '</span><span style="color:#8C7B52">→</span></button>';
     }).join('');
+  }).catch(function() {
+    if (requestId !== currentRequestId) return;
+    btn.disabled = false; btn.textContent = 'Hae';
+    document.getElementById('searchResults').innerHTML = '<p class="empty">Haku epäonnistui. Yritä uudelleen.</p>';
   });
 }
 
-function avaaHenkilo(i) {
-  var p = persons[i];
-  currentRequestId++;
-  var myRequestId = currentRequestId;
-  naytaHenkilo();
-
-  document.getElementById('p-name').textContent = p.name;
+/* ---------- Henkilösivu ---------- */
+function nollaaHenkilosivu(nimi) {
+  document.getElementById('p-name').textContent = nimi;
   document.getElementById('p-rank').textContent = '';
+  document.getElementById('p-unit').classList.add('hidden');
   document.getElementById('p-info').innerHTML = '';
   document.getElementById('p-links').innerHTML = '';
-  resetNarrativeCard();
+  var narrativeEl = document.getElementById('narrative-body');
+  narrativeEl.className = 'loading';
+  narrativeEl.textContent = '⏳ Kirjoitetaan yhteenvetoa...';
   document.getElementById('battle-list').innerHTML = '<p class="loading">Ladataan taistelutietoja...</p>';
-  document.getElementById('wiki-text').textContent = 'Ladataan...';
   document.getElementById('photo-grid').innerHTML = '<p class="loading">Ladataan...</p>';
+}
 
-  var q = 'PREFIX skos: <http://www.w3.org/2004/02/skos/core#>\n' +
+function henkilokysely(uri) {
+  return 'PREFIX skos: <http://www.w3.org/2004/02/skos/core#>\n' +
     'PREFIX crm: <http://www.cidoc-crm.org/cidoc-crm/>\n' +
     'SELECT DISTINCT ?prop ?val ?label WHERE {\n' +
     '  {\n' +
-    '    <' + p.uri + '> ?prop ?val .\n' +
+    '    <' + uri + '> ?prop ?val .\n' +
     '    OPTIONAL { ?val skos:prefLabel ?label .\n' +
     '      FILTER(langMatches(lang(?label),"fi") || lang(?label)="") }\n' +
     '  } UNION {\n' +
-    '    <' + p.uri + '> crm:P70i_is_documented_in ?doc .\n' +
+    '    <' + uri + '> crm:P70i_is_documented_in ?doc .\n' +
     '    ?doc ?prop ?val .\n' +
     '    OPTIONAL { ?val skos:prefLabel ?label .\n' +
     '      FILTER(langMatches(lang(?label),"fi") || lang(?label)="") }\n' +
     '  }\n' +
     '  FILTER(!isBlank(?val))\n' +
     '} LIMIT 300';
+}
 
-  sparql(q, function(err, rows) {
-    if (myRequestId !== currentRequestId) return; // vanhentunut vastaus
+function poimiHenkilotiedot(rows) {
+  var data = {
+    arvo: '', syntyma: '', syntymakunta: '',
+    kuolema: '', kuolinkunta: '', kuolinpaikka: '', kuolinsyy: '',
+    kotikunta: '', ammatti: '', yksikko: null
+  };
 
-    var data = { arvo:'', syntyma:'', kuolema:'', kotikunta:'', syntymakunta:'', ammatti:'', kuolinsyy:'', kuolinpaikka:'', kuvaus:'' };
-    var yksikot = [];
+  rows.forEach(function(r) {
+    var prop = r.prop ? r.prop.value : '';
+    var val = r.val ? r.val.value : '';
+    var lbl = r.label ? r.label.value : '';
+    var propEnd = prop.split('/').pop().split('#').pop();
 
-    // TODO poista: väliaikainen debug, näytä kaikki rivit täydellisinä konsolissa
-    console.log('Sotasampo palautti ' + rows.length + ' riviä henkilölle ' + p.name + ':');
-    rows.forEach(function(r, i) {
-      var prop=r.prop?r.prop.value:'', val=r.val?r.val.value:'', lbl=r.label?r.label.value:'';
-      console.log(i + ': ' + prop + ' = ' + val + (lbl && lbl!==val ? '  [label: ' + lbl + ']' : ''));
-    });
+    if (propEnd === 'rank' && (lbl || val) && !data.arvo) data.arvo = lbl || val;
+    if (propEnd === 'date_of_birth' && !data.syntyma) data.syntyma = val.substring(0, 10);
+    if (propEnd === 'date_of_death' && !data.kuolema) data.kuolema = val.substring(0, 10);
+    if (propEnd === 'municipality_of_birth' && lbl && !data.syntymakunta) data.syntymakunta = lbl;
+    if (propEnd === 'municipality_of_death' && lbl && !data.kuolinkunta) data.kuolinkunta = lbl;
+    if (propEnd === 'place_of_death_literal' && val && !data.kuolinpaikka) data.kuolinpaikka = val;
+    if (propEnd === 'perishing_category' && (lbl || val) && !data.kuolinsyy) data.kuolinsyy = lbl || val;
+    if (propEnd === 'municipality_of_domicile' && lbl && !data.kotikunta) data.kotikunta = lbl;
+    if ((propEnd === 'has_occupation' || propEnd === 'occupation_literal') && (lbl || val) && !data.ammatti) data.ammatti = lbl || val;
+    if (propEnd === 'unit' && lbl && !data.yksikko) data.yksikko = { uri: val, nimi: lbl };
+  });
 
-    rows.forEach(function(r) {
-      var prop=r.prop?r.prop.value:'', val=r.val?r.val.value:'', lbl=r.label?r.label.value:'';
-      var propEnd = prop.split('/').pop().split('#').pop();
-      if (propEnd==='rank' && (lbl||val) && !data.arvo) data.arvo=lbl||val;
-      if (propEnd==='date_of_birth' && !data.syntyma) data.syntyma=val.substring(0,10);
-      if (propEnd==='date_of_death' && !data.kuolema) data.kuolema=val.substring(0,10);
-      if (propEnd==='municipality_of_domicile' && lbl && !data.kotikunta) data.kotikunta=lbl;
-      if (propEnd==='municipality_of_birth' && lbl && !data.syntymakunta) data.syntymakunta=lbl;
-      if ((propEnd==='has_occupation'||propEnd==='occupation_literal') && (lbl||val) && !data.ammatti) data.ammatti=lbl||val;
-      if (propEnd==='municipality_of_death' && lbl && !data.kuolinpaikka) data.kuolinpaikka=lbl;
-      if (propEnd==='place_of_death_literal' && val && !data.kuolinpaikka2) data.kuolinpaikka2=val;
-      if (propEnd==='perishing_category' && (lbl||val) && !data.kuolinsyy) data.kuolinsyy=lbl||val;
-      if (propEnd==='description' && r.val && r.val['xml:lang']==='fi' && val && !data.kuvaus) data.kuvaus=val;
-      if (propEnd==='unit' && lbl) {
-        if (!yksikot.some(function(u){return u.uri===val;}))
-          yksikot.push({uri:val, name:lbl});
-      }
-    });
+  return data;
+}
 
-    // Täytä tiedot
-    if (data.arvo) document.getElementById('p-rank').textContent = data.arvo;
+function naytaHenkilotiedot(data) {
+  if (data.arvo) document.getElementById('p-rank').textContent = data.arvo;
 
-    var infoHtml = '';
-    if (data.syntyma) infoHtml += '<div class="info-item"><label>Syntynyt</label><span>' + data.syntyma + (data.syntymakunta?', '+data.syntymakunta:'') + '</span></div>';
-    if (data.kuolema) infoHtml += '<div class="info-item"><label>Kaatunut</label><span>' + data.kuolema + (data.kuolinpaikka2 ? ', ' + data.kuolinpaikka2 : (data.kuolinpaikka ? ', ' + data.kuolinpaikka : '')) + '</span></div>';
-    if (data.kotikunta) infoHtml += '<div class="info-item"><label>Kotikunta</label><span>' + data.kotikunta + '</span></div>';
-    if (data.ammatti) infoHtml += '<div class="info-item"><label>Ammatti</label><span>' + data.ammatti + '</span></div>';
-    if (data.kuolinsyy) infoHtml += '<div class="info-item"><label>Kuolinsyy</label><span>' + data.kuolinsyy + '</span></div>';
-    if (yksikot.length) infoHtml += '<div class="info-item"><label>Joukko-osasto</label><span>' + yksikot[0].name + '</span></div>';
-    document.getElementById('p-info').innerHTML = infoHtml;
+  if (data.yksikko) {
+    var unitEl = document.getElementById('p-unit');
+    unitEl.textContent = data.yksikko.nimi;
+    unitEl.classList.remove('hidden');
+  }
 
-    var linksHtml = '<a href="https://www.sotasampo.fi/fi/persons/?uri=' + encodeURIComponent(p.uri) + '" target="_blank" class="ext-link">Sotasampo ↗</a>';
-    linksHtml += '<a href="https://sotapolku.fi/henkilot/" target="_blank" class="sotapolku-btn">Avaa Sotapolku.fi ↗</a>';
-    document.getElementById('p-links').innerHTML = linksHtml;
+  var kaatumispaikka = data.kuolinpaikka || data.kuolinkunta;
+  var html = '';
+  if (data.syntyma) html += '<div class="info-item"><label>Syntynyt</label><span>' + data.syntyma + (data.syntymakunta ? ', ' + data.syntymakunta : '') + '</span></div>';
+  if (data.kuolema) html += '<div class="info-item"><label>Kaatunut</label><span>' + data.kuolema + (kaatumispaikka ? ', ' + kaatumispaikka : '') + '</span></div>';
+  if (data.kotikunta) html += '<div class="info-item"><label>Kotikunta</label><span>' + data.kotikunta + '</span></div>';
+  if (data.ammatti) html += '<div class="info-item"><label>Ammatti</label><span>' + data.ammatti + '</span></div>';
+  if (data.kuolinsyy) html += '<div class="info-item"><label>Kuolinsyy</label><span>' + data.kuolinsyy + '</span></div>';
+  document.getElementById('p-info').innerHTML = html;
+}
 
-    var unitName = yksikot.length ? yksikot[0].name : '';
-    data.nimi = p.name; // lisätään nimi dataan
+function naytaLinkit(p) {
+  var html = '<a href="https://www.sotasampo.fi/fi/persons/?uri=' + encodeURIComponent(p.uri) + '" target="_blank" class="ext-link">Sotasampo ↗</a>';
+  html += '<a href="https://www.sotapolku.fi/henkilot/" target="_blank" class="sotapolku-btn">Avaa Sotapolku.fi ↗</a>';
+  document.getElementById('p-links').innerHTML = html;
+}
 
-    if (yksikot.length) {
-      haeTaistelut(yksikot[0].uri, unitName, data, p.name, myRequestId);
-      haeWikipedia(unitName, myRequestId);
-      haeKuvat(unitName, myRequestId);
+function avaaHenkilo(i) {
+  var p = persons[i];
+  currentRequestId++;
+  var requestId = currentRequestId;
+
+  naytaHenkilo();
+  nollaaHenkilosivu(p.name);
+
+  sparqlQuery(henkilokysely(p.uri)).then(function(rows) {
+    if (requestId !== currentRequestId) return;
+
+    var data = poimiHenkilotiedot(rows);
+    data.nimi = p.name;
+    naytaHenkilotiedot(data);
+    naytaLinkit(p);
+
+    if (data.yksikko) {
+      haeTaistelut(data.yksikko.uri, requestId).then(function(battles) {
+        haeNarratiivi(data, data.yksikko.nimi, battles, requestId);
+      });
+      haeKuvat(data.yksikko.nimi, requestId);
     } else {
       document.getElementById('battle-list').innerHTML = '<p class="empty">Ei yksikkötietoa Sotasammossa.</p>';
-      document.getElementById('wiki-text').textContent = 'Ei yksikkötietoa.';
-      if (data.kuvaus) {
-        // Ei yksikkötietoa (henkilö ei ole Menehtyneet-kannassa) mutta Sotasammolla on kuvaus:
-        // näytetään se suoraan, ei kutsuta narrative-APIa lainkaan.
-        naytaKuvaus(data.kuvaus, myRequestId);
-      } else {
-        haeNarratiivi(data, '', [], p.name, myRequestId);
-      }
-      haeKuvat(p.name, myRequestId);
+      haeNarratiivi(data, '', [], requestId);
+      haeKuvat(p.name, requestId);
     }
+  }).catch(function() {
+    if (requestId !== currentRequestId) return;
+    document.getElementById('p-info').innerHTML = '<p class="empty">Henkilötietojen haku epäonnistui.</p>';
   });
 }
 
-function haeTaistelut(unitUri, unitName, personData, personName, requestId) {
-  var q = 'PREFIX skos: <http://www.w3.org/2004/02/skos/core#>\n' +
+/* ---------- Taistelutapahtumat + kartta ---------- */
+function taistelukysely(unitUri) {
+  return 'PREFIX skos: <http://www.w3.org/2004/02/skos/core#>\n' +
     'PREFIX crm: <http://www.cidoc-crm.org/cidoc-crm/>\n' +
     'PREFIX wgs: <http://www.w3.org/2003/01/geo/wgs84_pos#>\n' +
     'SELECT DISTINCT ?ename ?pname ?lat ?lon ?start WHERE {\n' +
@@ -303,133 +333,117 @@ function haeTaistelut(unitUri, unitName, personData, personName, requestId) {
     '  OPTIONAL { ?event crm:P4_has_time-span ?ts .\n' +
     '    ?ts crm:P82a_begin_of_the_begin ?start . }\n' +
     '} ORDER BY ?start LIMIT 60';
+}
 
-  sparql(q, function(err, rows) {
-    if (requestId !== currentRequestId) return; // vanhentunut vastaus
-    var bl = document.getElementById('battle-list');
-    if (!rows.length) {
-      bl.innerHTML = '<p class="empty">Ei taistelutietoja Sotasammossa tälle yksikölle.</p>';
-      haeNarratiivi(personData, unitName, [], personName, requestId);
-      return;
-    }
+function haeTaistelut(unitUri, requestId) {
+  return sparqlQuery(taistelukysely(unitUri)).then(function(rows) {
+    if (requestId !== currentRequestId) return [];
 
-    var battleData = [];
-    var bounds = [];
-    var html = '';
-
-    // Lisää karttamerkit viiveellä
-    setTimeout(function() {
-      rows.forEach(function(r) {
-        var lat = r.lat ? parseFloat(r.lat.value) : null;
-        var lon = r.lon ? parseFloat(r.lon.value) : null;
-        var ename = r.ename ? r.ename.value : '';
-        var pname = r.pname ? r.pname.value : '';
-        var start = r.start ? r.start.value.substring(0,10) : '';
-        if (lat && lon && !isNaN(lat) && !isNaN(lon) && kartta) {
-          var m = L.circleMarker([lat,lon], {
-            radius:8, fillColor:'#1B3A28', color:'#8C7B52', weight:2, fillOpacity:0.85
-          }).addTo(kartta).bindPopup('<strong>'+ename+'</strong>'+(pname?'<br>'+pname:'')+(start?'<br>'+start:''));
-          merkit.push(m);
-          bounds.push([lat,lon]);
-        }
-      });
-      if (bounds.length > 1) kartta.fitBounds(bounds, {padding:[40,40]});
-      else if (bounds.length===1) kartta.setView(bounds[0], 10);
-    }, 400);
-
-    rows.forEach(function(r) {
-      var lat = r.lat ? parseFloat(r.lat.value) : null;
-      var lon = r.lon ? parseFloat(r.lon.value) : null;
-      var ename = r.ename ? r.ename.value : '';
-      var pname = r.pname ? r.pname.value : '';
-      var start = r.start ? r.start.value.substring(0,10) : '';
-      var hasCoords = lat && lon && !isNaN(lat) && !isNaN(lon);
-      battleData.push({name:ename, place:pname, date:start});
-
-      html += '<div class="battle-item"' + (hasCoords ? ' onclick="kartta&&kartta.setView(['+lat+','+lon+'],11)"' : '') + '>';
-      html += '<div class="dot' + (hasCoords?' has-map':'') + '"></div>';
-      html += '<div><div class="b-name">' + ename + '</div>';
-      if (pname) html += '<div class="b-place">' + pname + '</div>';
-      if (start) html += '<div class="b-date">' + start + '</div>';
-      html += '</div></div>';
+    var battles = rows.map(function(r) {
+      return {
+        name: r.ename ? r.ename.value : '',
+        place: r.pname ? r.pname.value : '',
+        date: r.start ? r.start.value.substring(0, 10) : '',
+        lat: r.lat ? parseFloat(r.lat.value) : null,
+        lon: r.lon ? parseFloat(r.lon.value) : null
+      };
     });
 
-    bl.innerHTML = html;
-    haeNarratiivi(personData, unitName, battleData, personName, requestId);
+    naytaTaistelut(battles);
+    return battles;
+  }).catch(function() {
+    if (requestId === currentRequestId) {
+      document.getElementById('battle-list').innerHTML = '<p class="empty">Taistelutietojen haku epäonnistui.</p>';
+    }
+    return [];
   });
 }
 
-function resetNarrativeCard() {
-  document.querySelector('#card-narrative .card-tag').textContent = 'Claude AI';
-  document.querySelector('#card-narrative .card-title').textContent = 'Yhteenveto';
-  document.querySelector('#card-narrative .card-body').innerHTML = '<p class="loading" id="narrative-text">⏳ Kirjoitetaan yhteenvetoa...</p>';
+function naytaTaistelut(battles) {
+  var bl = document.getElementById('battle-list');
+  if (!battles.length) {
+    bl.innerHTML = '<p class="empty">Ei taistelutietoja Sotasammossa tälle yksikölle.</p>';
+    return;
+  }
+
+  var html = '';
+  var bounds = [];
+
+  battles.forEach(function(b) {
+    var hasCoords = b.lat && b.lon && !isNaN(b.lat) && !isNaN(b.lon);
+    if (hasCoords) bounds.push([b.lat, b.lon]);
+
+    html += '<div class="battle-item"' + (hasCoords ? ' onclick="kartta&&kartta.setView([' + b.lat + ',' + b.lon + '],11)"' : '') + '>';
+    html += '<div class="dot' + (hasCoords ? ' has-map' : '') + '"></div>';
+    html += '<div><div class="b-name">' + b.name + '</div>';
+    if (b.place) html += '<div class="b-place">' + b.place + '</div>';
+    if (b.date) html += '<div class="b-date">' + b.date + '</div>';
+    html += '</div></div>';
+  });
+  bl.innerHTML = html;
+
+  setTimeout(function() {
+    if (!kartta) return;
+    battles.forEach(function(b) {
+      var hasCoords = b.lat && b.lon && !isNaN(b.lat) && !isNaN(b.lon);
+      if (!hasCoords) return;
+      var m = L.circleMarker([b.lat, b.lon], {
+        radius: 8, fillColor: '#1B3A28', color: '#8C7B52', weight: 2, fillOpacity: 0.85
+      }).addTo(kartta).bindPopup('<strong>' + b.name + '</strong>' + (b.place ? '<br>' + b.place : '') + (b.date ? '<br>' + b.date : ''));
+      karttamerkit.push(m);
+    });
+    if (bounds.length > 1) kartta.fitBounds(bounds, { padding: [40, 40] });
+    else if (bounds.length === 1) kartta.setView(bounds[0], 10);
+  }, 400);
 }
 
-function naytaKuvaus(kuvaus, requestId) {
-  if (requestId !== currentRequestId) return; // vanhentunut vastaus
-  document.querySelector('#card-narrative .card-tag').textContent = 'Sotasampo';
-  document.querySelector('#card-narrative .card-title').textContent = 'Kuvaus';
-  document.querySelector('#card-narrative .card-body').innerHTML =
-    '<div class="narrative-text">' + kuvaus.replace(/\n\n/g,'</p><p style="margin-top:10px">').replace(/\n/g,'<br>') + '</div>';
-}
-
-function haeNarratiivi(personData, unitName, battles, personName, requestId) {
+/* ---------- Claude-narratiivi ---------- */
+function haeNarratiivi(personData, unitName, battles, requestId) {
   fetch('/api/narrative?_t=' + Date.now(), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ person: personData, unit: unitName, battles: battles, personName: personName, nimi: personName })
+    body: JSON.stringify({ person: personData, unit: unitName, battles: battles, personName: personData.nimi })
   })
   .then(function(r) { return r.json(); })
   .then(function(d) {
-    if (requestId !== currentRequestId) return; // vanhentunut vastaus
-    var el = document.getElementById('narrative-text');
-    if (el && d.narrative) {
-      el.outerHTML = '<div class="narrative-text">' + d.narrative.replace(/\n\n/g,'</p><p style="margin-top:10px">').replace(/\n/g,'<br>') + '</div>';
+    if (requestId !== currentRequestId) return;
+    var el = document.getElementById('narrative-body');
+    if (d.narrative) {
+      el.className = 'narrative-text';
+      el.innerHTML = '<p>' + d.narrative.replace(/\n\n/g, '</p><p style="margin-top:10px">').replace(/\n/g, '<br>') + '</p>';
+    } else {
+      el.className = 'empty';
+      el.textContent = 'Yhteenvetoa ei saatu muodostettua.';
     }
   })
   .catch(function() {
-    var el = document.getElementById('narrative-text');
-    if (el) el.textContent = 'Narratiivin haku epäonnistui.';
+    if (requestId !== currentRequestId) return;
+    var el = document.getElementById('narrative-body');
+    el.className = 'empty';
+    el.textContent = 'Narratiivin haku epäonnistui.';
   });
 }
 
-function haeWikipedia(unitName, requestId) {
-  fetch('/api/wikipedia?yksikko=' + encodeURIComponent(unitName))
-    .then(function(r) { return r.json(); })
-    .then(function(d) {
-      if (requestId !== currentRequestId) return;
-      var el = document.getElementById('wiki-text');
-      if (!el) return;
-      if (d.teksti) {
-        el.outerHTML = '<div class="wiki-text">' + d.teksti.substring(0,1000) +
-          '... <a href="https://fi.wikipedia.org/wiki/' + encodeURIComponent(d.otsikko||unitName) + '" target="_blank">Lue lisää ↗</a></div>';
-      } else {
-        el.textContent = 'Ei Wikipedia-artikkelia tälle yksikölle.';
-      }
-    }).catch(function() {
-      var el = document.getElementById('wiki-text');
-      if (el) el.textContent = 'Wikipedia-haun virhe.';
-    });
-}
-
+/* ---------- SA-kuvat (Finna) ---------- */
 function haeKuvat(hakusana, requestId) {
   fetch('https://api.finna.fi/v1/search?lookfor=' + encodeURIComponent(hakusana) + '&limit=6&filter%5B%5D=building%3A0%2Fsa-kuva%2F')
     .then(function(r) { return r.json(); })
     .then(function(d) {
       if (requestId !== currentRequestId) return;
       var el = document.getElementById('photo-grid');
-      if (!el) return;
       var records = d.records || [];
       if (!records.length) { el.innerHTML = '<p class="empty">Ei SA-kuvia.</p>'; return; }
-      el.innerHTML = '<div class="photo-grid">' + records.slice(0,6).map(function(r) {
-        var src = r.images&&r.images[0] ? 'https://www.finna.fi'+r.images[0] : null;
-        var img = src ? '<img src="'+src+'" alt="" loading="lazy" onerror="this.style.display=\'none\'">'
-                     : '<div style="height:110px;background:#E8E0CC;display:flex;align-items:center;justify-content:center">📷</div>';
-        return '<a href="https://www.finna.fi/Record/'+encodeURIComponent(r.id)+'" target="_blank" class="photo-card">'+img+'<div class="photo-title">'+(r.title||'').substring(0,50)+'</div></a>';
+      el.innerHTML = '<div class="photo-grid">' + records.slice(0, 6).map(function(r) {
+        var src = r.images && r.images[0] ? 'https://www.finna.fi' + r.images[0] : null;
+        var img = src
+          ? '<img src="' + src + '" alt="" loading="lazy" onerror="this.style.display=\'none\'">'
+          : '<div style="height:110px;background:#E8E0CC;display:flex;align-items:center;justify-content:center">📷</div>';
+        return '<a href="https://www.finna.fi/Record/' + encodeURIComponent(r.id) + '" target="_blank" class="photo-card">' + img + '<div class="photo-title">' + (r.title || '').substring(0, 50) + '</div></a>';
       }).join('') + '</div>';
-    }).catch(function() {
-      var el = document.getElementById('photo-grid');
-      if (el) el.innerHTML = '<p class="empty">Kuvahaun virhe.</p>';
+    })
+    .catch(function() {
+      if (requestId !== currentRequestId) return;
+      document.getElementById('photo-grid').innerHTML = '<p class="empty">Kuvahaun virhe.</p>';
     });
 }
 

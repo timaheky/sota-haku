@@ -3,25 +3,24 @@ module.exports = async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  const { person, unit, battles, diary } = req.body || {};
+  const { person, unit, battles, personName } = req.body || {};
   if (!person) return res.status(400).json({ error: 'Ei henkilötietoja' });
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) return res.status(500).json({ error: 'API-avain puuttuu' });
 
-  const personName = req.body.nimi || req.body.personName || person.nimi || '';
-  const kuvausOsio = person.kuvaus
-    ? `\nTAUSTAKUVAUS (Sotasampo):\n${person.kuvaus}\n`
-    : '';
-  const prompt = `Kirjoita lyhyt suomenkielinen kuvaus sotamiehen elämästä sodan aikana.
+  const nimi = personName || person.nimi || '';
+  const kaatumispaikka = person.kuolinpaikka || person.kuolinkunta || '';
+
+  const prompt = `Kirjoita lyhyt suomenkielinen kuvaus sotilaan elämästä sodan aikana.
 
 TÄRKEÄÄ: Käytä AINOASTAAN alla annettuja tietoja. Älä keksi mitään. Älä laske ikiä itse. Älä mainitse vuosilukuja tai tapahtumia joita ei ole annettu. Jos tieto puuttuu, jätä se mainitsematta.
 
 HENKILÖTIEDOT:
-Nimi: ${personName}
+Nimi: ${nimi}
 Sotilasarvo: ${person.arvo || ''}
 Syntynyt: ${person.syntyma || ''}${person.syntymakunta ? ', ' + person.syntymakunta : ''}
-Kaatunut: ${person.kuolema || ''}${person.kuolinpaikka2 ? ', ' + person.kuolinpaikka2 : ''}${person.kuolinpaikka ? ' (' + person.kuolinpaikka + ')' : ''}
+Kaatunut: ${person.kuolema || ''}${kaatumispaikka ? ', ' + kaatumispaikka : ''}
 Kotikunta: ${person.kotikunta || ''}
 Ammatti: ${person.ammatti || ''}
 Kuolinsyy: ${person.kuolinsyy || ''}
@@ -31,7 +30,7 @@ ${unit || 'Ei tiedossa'}
 
 TAISTELUTAPAHTUMAT (yksikön tiedot Sotasammosta):
 ${battles && battles.length ? battles.map(b => '- ' + b.name + (b.place ? ' (' + b.place + ')' : '') + (b.date ? ', ' + b.date : '')).join('\n') : 'Ei taistelutietoja'}
-${kuvausOsio}
+
 Kirjoita 2-3 kappaletta. Kerro vain annetuista faktoista. Älä spekuloi, älä laske ikiä, älä lisää tietoja joita ei ole annettu.`;
 
   try {
