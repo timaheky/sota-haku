@@ -199,7 +199,7 @@ function avaaHenkilo(i) {
   document.getElementById('p-rank').textContent = '';
   document.getElementById('p-info').innerHTML = '';
   document.getElementById('p-links').innerHTML = '';
-  document.getElementById('narrative-text').textContent = '⏳ Kirjoitetaan yhteenvetoa...';
+  resetNarrativeCard();
   document.getElementById('battle-list').innerHTML = '<p class="loading">Ladataan taistelutietoja...</p>';
   document.getElementById('wiki-text').textContent = 'Ladataan...';
   document.getElementById('photo-grid').innerHTML = '<p class="loading">Ladataan...</p>';
@@ -221,14 +221,16 @@ function avaaHenkilo(i) {
     '} LIMIT 300';
 
   sparql(q, function(err, rows) {
-    var data = { arvo:'', syntyma:'', kuolema:'', kotikunta:'', syntymakunta:'', ammatti:'', kuolinsyy:'', kuolinpaikka:'' };
+    if (myRequestId !== currentRequestId) return; // vanhentunut vastaus
+
+    var data = { arvo:'', syntyma:'', kuolema:'', kotikunta:'', syntymakunta:'', ammatti:'', kuolinsyy:'', kuolinpaikka:'', kuvaus:'' };
     var yksikot = [];
 
-    // Debug: näytä kaikki propertyt konsolissa
-    console.log('Sotasampo palautti ' + rows.length + ' riviä:');
-    rows.forEach(function(r) {
+    // TODO poista: väliaikainen debug, näytä kaikki rivit täydellisinä konsolissa
+    console.log('Sotasampo palautti ' + rows.length + ' riviä henkilölle ' + p.name + ':');
+    rows.forEach(function(r, i) {
       var prop=r.prop?r.prop.value:'', val=r.val?r.val.value:'', lbl=r.label?r.label.value:'';
-      console.log(prop.split('/').pop() + ' = ' + (lbl||val).substring(0,60));
+      console.log(i + ': ' + prop + ' = ' + val + (lbl && lbl!==val ? '  [label: ' + lbl + ']' : ''));
     });
 
     rows.forEach(function(r) {
@@ -243,6 +245,7 @@ function avaaHenkilo(i) {
       if (propEnd==='municipality_of_death' && lbl && !data.kuolinpaikka) data.kuolinpaikka=lbl;
       if (propEnd==='place_of_death_literal' && val && !data.kuolinpaikka2) data.kuolinpaikka2=val;
       if (propEnd==='perishing_category' && (lbl||val) && !data.kuolinsyy) data.kuolinsyy=lbl||val;
+      if (propEnd==='description' && r.val && r.val['xml:lang']==='fi' && val && !data.kuvaus) data.kuvaus=val;
       if (propEnd==='unit' && lbl) {
         if (!yksikot.some(function(u){return u.uri===val;}))
           yksikot.push({uri:val, name:lbl});
@@ -275,7 +278,13 @@ function avaaHenkilo(i) {
     } else {
       document.getElementById('battle-list').innerHTML = '<p class="empty">Ei yksikkötietoa Sotasammossa.</p>';
       document.getElementById('wiki-text').textContent = 'Ei yksikkötietoa.';
-      haeNarratiivi(data, '', [], p.name, myRequestId);
+      if (data.kuvaus) {
+        // Ei yksikkötietoa (henkilö ei ole Menehtyneet-kannassa) mutta Sotasammolla on kuvaus:
+        // näytetään se suoraan, ei kutsuta narrative-APIa lainkaan.
+        naytaKuvaus(data.kuvaus, myRequestId);
+      } else {
+        haeNarratiivi(data, '', [], p.name, myRequestId);
+      }
       haeKuvat(p.name, myRequestId);
     }
   });
@@ -300,7 +309,7 @@ function haeTaistelut(unitUri, unitName, personData, personName, requestId) {
     var bl = document.getElementById('battle-list');
     if (!rows.length) {
       bl.innerHTML = '<p class="empty">Ei taistelutietoja Sotasammossa tälle yksikölle.</p>';
-      haeNarratiivi(personData, unitName, [], personName);
+      haeNarratiivi(personData, unitName, [], personName, requestId);
       return;
     }
 
@@ -348,6 +357,20 @@ function haeTaistelut(unitUri, unitName, personData, personName, requestId) {
     bl.innerHTML = html;
     haeNarratiivi(personData, unitName, battleData, personName, requestId);
   });
+}
+
+function resetNarrativeCard() {
+  document.querySelector('#card-narrative .card-tag').textContent = 'Claude AI';
+  document.querySelector('#card-narrative .card-title').textContent = 'Yhteenveto';
+  document.querySelector('#card-narrative .card-body').innerHTML = '<p class="loading" id="narrative-text">⏳ Kirjoitetaan yhteenvetoa...</p>';
+}
+
+function naytaKuvaus(kuvaus, requestId) {
+  if (requestId !== currentRequestId) return; // vanhentunut vastaus
+  document.querySelector('#card-narrative .card-tag').textContent = 'Sotasampo';
+  document.querySelector('#card-narrative .card-title').textContent = 'Kuvaus';
+  document.querySelector('#card-narrative .card-body').innerHTML =
+    '<div class="narrative-text">' + kuvaus.replace(/\n\n/g,'</p><p style="margin-top:10px">').replace(/\n/g,'<br>') + '</div>';
 }
 
 function haeNarratiivi(personData, unitName, battles, personName, requestId) {

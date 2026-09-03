@@ -10,7 +10,10 @@ module.exports = async function handler(req, res) {
   if (!apiKey) return res.status(500).json({ error: 'API-avain puuttuu' });
 
   const personName = req.body.nimi || req.body.personName || person.nimi || '';
-  const prompt = `Kirjoita lyhyt suomenkielinen kuvaus sotamiehen elämästä sodan aikana. 
+  const kuvausOsio = person.kuvaus
+    ? `\nTAUSTAKUVAUS (Sotasampo):\n${person.kuvaus}\n`
+    : '';
+  const prompt = `Kirjoita lyhyt suomenkielinen kuvaus sotamiehen elämästä sodan aikana.
 
 TÄRKEÄÄ: Käytä AINOASTAAN alla annettuja tietoja. Älä keksi mitään. Älä laske ikiä itse. Älä mainitse vuosilukuja tai tapahtumia joita ei ole annettu. Jos tieto puuttuu, jätä se mainitsematta.
 
@@ -28,7 +31,7 @@ ${unit || 'Ei tiedossa'}
 
 TAISTELUTAPAHTUMAT (yksikön tiedot Sotasammosta):
 ${battles && battles.length ? battles.map(b => '- ' + b.name + (b.place ? ' (' + b.place + ')' : '') + (b.date ? ', ' + b.date : '')).join('\n') : 'Ei taistelutietoja'}
-
+${kuvausOsio}
 Kirjoita 2-3 kappaletta. Kerro vain annetuista faktoista. Älä spekuloi, älä laske ikiä, älä lisää tietoja joita ei ole annettu.`;
 
   try {
